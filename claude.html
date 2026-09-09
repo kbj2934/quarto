@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>콰트로 배우기 · 초등 보드게임 튜토리얼</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ============================================================
+   콰트로 배우기 — 디자인 토큰
+   펠트 게임매트(짙은 청록) + 원목 조각(자작/호두) + 앰버 강조
+   ============================================================ */
+:root{
+  --felt-0:#0B2E2D;
+  --felt-1:#103E3C;
+  --felt-2:#15514D;
+  --board-bg:#082524;
+  --cell:#17605B;
+  --cell-hi:#22857C;
+  --line:rgba(242,177,56,.22);
+
+  --ink:#F3EFE4;
+  --ink-2:#BCD6D1;
+  --muted:#7FA6A1;
+
+  --amber:#F2B138;
+  --amber-2:#FFD98A;
+  --good:#7ED9A6;
+  --bad:#F5765F;
+
+  --radius:14px;
+  --pad: clamp(8px, 1.4vmin, 18px);
+  --gap: clamp(6px, 1.1vmin, 14px);
+
+  --f-xs: clamp(10px, 1.35vmin, 13px);
+  --f-sm: clamp(11.5px, 1.62vmin, 15px);
+  --f-md: clamp(13px, 1.95vmin, 18px);
+  --f-lg: clamp(16px, 2.6vmin, 24px);
+  --f-xl: clamp(20px, 3.4vmin, 34px);
+
+  --body:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--body);
+  background:
+    radial-gradient(120% 90% at 12% 0%, #17514E 0%, transparent 55%),
+    radial-gradient(140% 100% at 100% 100%, #123F44 0%, transparent 50%),
+    var(--felt-0);
+  color:var(--ink);
+  overflow:hidden;
+  font-size:var(--f-md);
+  line-height:1.5;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:3px solid var(--amber-2);outline-offset:2px;border-radius:6px}
+
+/* ============================ 레이아웃 ============================ */
+#app{
+  height:100dvh;
+  height:100svh;
+  padding:var(--pad);
+  display:grid;
+  gap:var(--gap);
+  grid-template-columns: minmax(210px, 23%) minmax(0,1fr) minmax(200px, 25%);
+  grid-template-areas:"guide stage tray";
+}
+.panel{
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
+  border:1px solid rgba(242,177,56,.14);
+  border-radius:var(--radius);
+  min-height:0; min-width:0;
+  display:flex; flex-direction:column;
+  backdrop-filter:blur(2px);
+}
+#guide{grid-area:guide}
+#stage{grid-area:stage;background:none;border:none}
+#tray{grid-area:tray}
+
+/* ============================ 안내 패널 ============================ */
+.rail{
+  display:flex; flex-wrap:wrap; gap:4px;
+  padding:var(--pad) var(--pad) 0;
+}
+.rail button{
+  font-family:var(--mono);
+  font-size:var(--f-xs);
+  padding:.35em .6em;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  color:var(--muted);
+  transition:.18s;
+}
+.rail button.done{color:var(--good);border-color:rgba(126,217,166,.4)}
+.rail button.cur{background:var(--amber);color:#22160A;border-color:var(--amber);font-weight:700}
+.rail button:disabled{opacity:.35;cursor:default}
+
+.guide-body{
+  padding:var(--pad);
+  overflow-y:auto;
+  flex:1;
+  min-height:0;
+}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:var(--f-xs);
+  letter-spacing:.14em;
+  color:var(--amber);
+  text-transform:uppercase;
+}
+h1.title{
+  font-size:var(--f-lg);
+  font-weight:800;
+  letter-spacing:-.02em;
+  margin:.2em 0 .5em;
+  line-height:1.25;
+}
+.narr{font-size:var(--f-sm);color:var(--ink-2);line-height:1.65}
+.narr b{color:var(--amber-2);font-weight:700}
+.narr .kw{
+  background:rgba(242,177,56,.14);
+  border-bottom:2px solid rgba(242,177,56,.5);
+  padding:0 .2em;border-radius:3px;color:var(--ink);font-weight:600;
+}
+.status{
+  margin-top:.8em;font-family:var(--mono);font-size:var(--f-xs);color:var(--muted);
+}
+.flash{
+  margin-top:.7em;padding:.55em .7em;border-radius:10px;
+  font-size:var(--f-sm);font-weight:600;line-height:1.45;
+}
+.flash.ok{background:rgba(126,217,166,.14);color:var(--good);border:1px solid rgba(126,217,166,.35)}
+.flash.no{background:rgba(245,118,95,.14);color:var(--bad);border:1px solid rgba(245,118,95,.35)}
+.flash.info{background:rgba(242,177,56,.12);color:var(--amber-2);border:1px solid rgba(242,177,56,.3)}
+
+.choices{display:flex;flex-wrap:wrap;gap:6px;margin-top:.9em}
+.choices button{
+  border:1px solid rgba(242,177,56,.4);
+  background:rgba(242,177,56,.08);
+  color:var(--amber-2);
+  border-radius:10px;padding:.5em .8em;font-size:var(--f-sm);font-weight:600;
+  transition:.16s;
+}
+.choices button:hover{background:rgba(242,177,56,.2)}
+
+.guide-foot{
+  display:flex;gap:6px;padding:var(--pad);border-top:1px solid rgba(255,255,255,.08);
+}
+.btn{
+  border-radius:10px;padding:.6em .9em;font-size:var(--f-sm);font-weight:700;
+  border:1px solid rgba(255,255,255,.16);transition:.16s;white-space:nowrap;
+}
+.btn.ghost{color:var(--muted)}
+.btn.ghost:hover{color:var(--ink);border-color:rgba(255,255,255,.3)}
+.btn.go{flex:1;background:var(--amber);color:#22160A;border-color:var(--amber)}
+.btn.go:hover{background:var(--amber-2)}
+.btn.go:disabled{background:rgba(255,255,255,.06);color:var(--muted);border-color:rgba(255,255,255,.1);cursor:not-allowed}
+
+/* ============================ 무대(보드) ============================ */
+#stage{display:flex;flex-direction:column;gap:var(--gap);min-height:0}
+.stage-top{
+  flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:var(--gap);
+  min-height:0;
+}
+.handbar{
+  display:flex;align-items:center;gap:.7em;max-width:100%;
+  background:rgba(0,0,0,.28);border:1px solid rgba(242,177,56,.25);
+  border-radius:999px;padding:.35em .9em .35em .45em;
+}
+.handbar .lbl{font-size:var(--f-sm);font-weight:700;color:var(--amber-2);white-space:nowrap}
+.handbar .sub{font-size:var(--f-xs);color:var(--muted);font-family:var(--mono)}
+.hand-slot{
+  width:clamp(34px,5.4vmin,58px);aspect-ratio:1;flex:0 0 auto;
+  display:grid;place-items:center;border-radius:50%;
+  background:rgba(242,177,56,.12);border:1px dashed rgba(242,177,56,.4);
+}
+.hand-slot.filled{border-style:solid;background:rgba(242,177,56,.2)}
+.hand-slot svg{width:100%;height:100%}
+
+.stage-main{flex:1;min-height:0;display:grid;place-items:center;container-type:size}
+
+/* 보드 */
+.board-wrap{
+  width:100%;
+  width:min(100cqw, 100cqh);
+  max-width:100%;max-height:100%;
+  aspect-ratio:1;position:relative;
+}
+.board{
+  position:absolute;inset:0;
+  display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);
+  gap:clamp(3px,.7vmin,9px);
+  padding:clamp(4px,.9vmin,12px);
+  background:var(--board-bg);
+  border:2px solid rgba(242,177,56,.28);
+  border-radius:clamp(8px,1.6vmin,20px);
+  box-shadow:0 18px 44px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.cell{
+  position:relative;border-radius:clamp(5px,1vmin,12px);
+  background:var(--cell);
+  display:grid;place-items:center;
+  transition:background .16s, transform .16s;
+}
+.cell svg{width:88%;height:88%;display:block}
+.cell.open{cursor:pointer;background:rgba(23,96,91,.55);border:2px dashed rgba(242,177,56,.35)}
+.cell.open:hover,.cell.open:focus-visible{background:var(--cell-hi);transform:scale(1.04)}
+.cell.hintwin{border-color:var(--good);background:rgba(126,217,166,.22);animation:pulse 1.4s infinite}
+.cell.pop{animation:pop .38s cubic-bezier(.2,1.5,.4,1)}
+@keyframes pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(126,217,166,.5)}50%{box-shadow:0 0 0 .7vmin rgba(126,217,166,0)}}
+
+.overlay{position:absolute;inset:0;pointer-events:none;z-index:0}
+.overlay line{stroke:var(--amber);stroke-width:1.6;stroke-linecap:round;opacity:.28;stroke-dasharray:2.5 3}
+.overlay line.win{stroke:var(--good);opacity:.4}
+.cell.hi{background:rgba(242,177,56,.16);box-shadow:inset 0 0 0 3px var(--amber)}
+.cell.hi.won{background:rgba(126,217,166,.18);box-shadow:inset 0 0 0 3px var(--good);animation:glow 1.3s ease-in-out infinite alternate}
+@keyframes glow{from{box-shadow:inset 0 0 0 3px rgba(126,217,166,.55)}to{box-shadow:inset 0 0 0 3px rgba(126,217,166,1)}}
+
+.banner{
+  flex:0 0 auto;text-align:center;font-size:var(--f-sm);color:var(--ink-2);
+  min-height:1.6em;font-weight:600;
+}
+.banner .big{font-size:var(--f-lg);font-weight:800;color:var(--amber);letter-spacing:-.02em}
+
+/* 조각 자세히 보기 */
+.inspect{display:flex;align-items:center;gap:clamp(10px,3vmin,36px);flex-wrap:wrap;justify-content:center;padding:var(--pad)}
+.inspect .big-piece{width:min(30cqw,34cqh);min-width:110px;aspect-ratio:1}
+.attr-cards{display:grid;gap:var(--gap);grid-template-columns:repeat(2,minmax(0,1fr));max-width:min(60cqw,420px)}
+.acard{
+  background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;padding:.6em .75em;
+}
+.acard .k{font-family:var(--mono);font-size:var(--f-xs);color:var(--muted);letter-spacing:.08em}
+.acard .v{font-size:var(--f-md);font-weight:800;color:var(--amber-2);margin-top:.1em}
+
+/* 속성 필터 */
+.filters{display:flex;flex-direction:column;gap:var(--gap);width:min(96%,560px);padding:var(--pad)}
+.frow{display:grid;grid-template-columns:auto 1fr 1fr;gap:var(--gap);align-items:center}
+.frow .fk{font-family:var(--mono);font-size:var(--f-sm);color:var(--muted);min-width:3.2em}
+.fbtn{
+  border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:.6em .5em;
+  font-size:var(--f-sm);font-weight:700;color:var(--ink-2);background:rgba(0,0,0,.2);transition:.16s;
+}
+.fbtn:hover{border-color:rgba(242,177,56,.5);color:var(--ink)}
+.fbtn.on{background:var(--amber);color:#22160A;border-color:var(--amber)}
+
+/* 순서 다이어그램 */
+.flow{display:grid;gap:var(--gap);width:min(96%,600px);padding:var(--pad)}
+.fstep{
+  display:grid;grid-template-columns:auto 1fr;gap:.8em;align-items:center;
+  background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.1);
+  border-left:4px solid var(--amber);border-radius:12px;padding:.7em .9em;
+}
+.fstep .n{font-family:var(--mono);font-size:var(--f-lg);font-weight:800;color:var(--amber);opacity:.8}
+.fstep .tx{font-size:var(--f-sm);line-height:1.45}
+.fstep .tx b{color:var(--amber-2)}
+
+/* 찾기 퀴즈 */
+.findbox{display:flex;flex-direction:column;align-items:center;gap:var(--gap);padding:var(--pad)}
+.findbox .q{font-size:var(--f-lg);font-weight:800;letter-spacing:-.02em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{
+  background:rgba(242,177,56,.16);border:1px solid rgba(242,177,56,.45);
+  color:var(--amber-2);border-radius:999px;padding:.4em .9em;font-size:var(--f-sm);font-weight:700;
+}
+.chip.grey{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16);color:var(--ink-2)}
+
+/* 설정 */
+.settings{display:flex;flex-direction:column;gap:var(--gap);width:min(96%,520px);padding:var(--pad)}
+.srow{display:grid;grid-template-columns:auto 1fr;gap:var(--gap);align-items:center}
+.srow .sk{font-size:var(--f-sm);font-weight:700;color:var(--ink-2);min-width:5em}
+.seg{display:flex;gap:6px}
+.seg button{
+  flex:1;border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:.5em .4em;
+  font-size:var(--f-sm);font-weight:700;color:var(--ink-2);background:rgba(0,0,0,.2);
+}
+.seg button.on{background:var(--amber);color:#22160A;border-color:var(--amber)}
+
+/* ============================ 조각 트레이 ============================ */
+.tray-head{
+  padding:var(--pad) var(--pad) 0;display:flex;align-items:baseline;justify-content:space-between;gap:6px;
+}
+.tray-head .t{font-size:var(--f-sm);font-weight:800;letter-spacing:-.01em}
+.tray-head .c{font-family:var(--mono);font-size:var(--f-xs);color:var(--muted)}
+.tray-hint{
+  padding:0 var(--pad);font-size:var(--f-xs);color:var(--amber);font-weight:700;min-height:1.3em;
+}
+.tray-grid{
+  flex:1;min-height:0;overflow:auto;
+  padding:var(--pad);
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:clamp(3px,.8vmin,10px);align-content:start;
+}
+.slot{
+  aspect-ratio:1;border-radius:10px;background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.07);
+  display:grid;place-items:center;position:relative;transition:.16s;
+}
+.slot svg{width:92%;height:92%;display:block}
+.slot.pickable{cursor:pointer;border-color:rgba(242,177,56,.35)}
+.slot.pickable:hover,.slot.pickable:focus-visible{background:rgba(242,177,56,.18);transform:translateY(-2px)}
+.slot.gone{opacity:.16;filter:grayscale(1)}
+.slot.dim{opacity:.2}
+.slot.sel{background:rgba(242,177,56,.28);border-color:var(--amber);box-shadow:0 0 0 2px rgba(242,177,56,.5)}
+.slot .warn{
+  position:absolute;top:-4px;right:-4px;width:1.5em;height:1.5em;border-radius:50%;
+  background:var(--bad);color:#2A0A05;font-size:var(--f-xs);font-weight:900;
+  display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.4);
+}
+.slot .ok{
+  position:absolute;top:-4px;right:-4px;width:1.5em;height:1.5em;border-radius:50%;
+  background:var(--good);color:#06301C;font-size:var(--f-xs);font-weight:900;
+  display:grid;place-items:center;
+}
+
+/* ============================ 태블릿/모바일 ============================ */
+@media (max-aspect-ratio: 1/1){
+  #app{
+    grid-template-columns:1fr;
+    grid-template-rows:minmax(0,1fr) auto auto;
+    grid-template-areas:"stage" "tray" "guide";
+  }
+  #tray{max-height:24dvh}
+  #guide{max-height:36dvh}
+  .stage-top .handbar{padding:.3em .7em .3em .35em}
+  .tray-grid{grid-template-columns:repeat(8,minmax(0,1fr))}
+  .rail{padding-top:8px}
+  .guide-body{padding-top:8px}
+  .inspect{flex-direction:row}
+  .attr-cards{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-aspect-ratio: 1/1) and (max-width:480px){
+  .attr-cards{max-width:60vw}
+  .frow{grid-template-columns:1fr}
+  .frow .fk{min-width:0}
+}
+@media (orientation:landscape) and (max-height:460px){
+  #guide{min-width:190px}
+  .tray-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+/* 보드가 아닌 학습 화면도 하나의 카드로 묶어 여백이 비어 보이지 않게 */
+.inspect,.filters,.flow,.findbox,.settings{
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.012));
+  border:1px solid rgba(242,177,56,.14);
+  border-radius:var(--radius);
+  padding:clamp(12px,2.6vmin,30px);
+  max-height:100%;overflow:auto;
+}
+.inspect{max-width:min(96%,760px)}
+.findbox{max-width:min(96%,520px)}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+<defs>
+  <linearGradient id="bodyL" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#C7A469"/><stop offset=".42" stop-color="#EBD5A8"/><stop offset="1" stop-color="#B08F5C"/>
+  </linearGradient>
+  <linearGradient id="bodyD" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#2E1B0D"/><stop offset=".42" stop-color="#5C3A23"/><stop offset="1" stop-color="#26160A"/>
+  </linearGradient>
+</defs>
+</svg>
+
+<div id="app">
+  <aside class="panel" id="guide">
+    <nav class="rail" id="rail" aria-label="배우는 순서"></nav>
+    <div class="guide-body">
+      <div class="eyebrow" id="eyebrow"></div>
+      <h1 class="title" id="stepTitle"></h1>
+      <div class="narr" id="narr"></div>
+      <div class="status" id="status"></div>
+      <div id="flash"></div>
+      <div class="choices" id="choices"></div>
+    </div>
+    <div class="guide-foot">
+      <button class="btn ghost" id="btnPrev">이전</button>
+      <button class="btn go" id="btnNext">다음</button>
+    </div>
+  </aside>
+
+  <section id="stage">
+    <div class="stage-top" id="stageTop"></div>
+    <div class="stage-main" id="stageMain"></div>
+    <div class="banner" id="banner"></div>
+  </section>
+
+  <section class="panel" id="tray">
+    <div class="tray-head"><span class="t">조각 상자</span><span class="c" id="trayCount"></span></div>
+    <div class="tray-hint" id="trayHint"></div>
+    <div class="tray-grid" id="trayGrid"></div>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   1. 조각 규칙  (0~15 정수의 4비트로 속성 인코딩)
+   bit1 키 : 0 작은 / 1 큰
+   bit2 색 : 0 밝은 / 1 어두운
+   bit4 모양: 0 동그라미 / 1 네모
+   bit8 윗면: 0 구멍없음 / 1 구멍있음
+   ============================================================ */
+const ATTRS=[
+  {bit:1, key:'키',   on:'키 큰',   off:'키 작은'},
+  {bit:2, key:'색',   on:'어두운색', off:'밝은색'},
+  {bit:4, key:'모양', on:'네모',    off:'동그라미'},
+  {bit:8, key:'윗면', on:'구멍 있음',off:'구멍 없음'},
+];
+const P=(t,d,s,h)=>t*1+d*2+s*4+h*8;
+const val=(p,a)=> (p&a.bit)? a.on : a.off;
+const pieceName=p=>ATTRS.map(a=>val(p,a)).join(' · ');
+const commonNames=(mask,sample)=>ATTRS.filter(a=>mask&a.bit).map(a=>val(sample,a));
+
+const LINES=(()=>{const L=[];
+  for(let r=0;r<4;r++)L.push([r*4,r*4+1,r*4+2,r*4+3]);
+  for(let c=0;c<4;c++)L.push([c,c+4,c+8,c+12]);
+  L.push([0,5,10,15]);L.push([3,6,9,12]);return L;})();
+const SQUARES=(()=>{const S=[];
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++){const i=r*4+c;S.push([i,i+1,i+4,i+5]);}return S;})();
+
+function linesOf(useSq){return useSq?LINES.concat(SQUARES):LINES;}
+function lineCommon(b,l){
+  let and=15,or=0;
+  for(const i of l){ if(b[i]===null) return 0; and&=b[i]; or|=b[i]; }
+  return (and | (~or & 15)) & 15;
+}
+function findWin(b,useSq){
+  for(const l of linesOf(useSq)){const c=lineCommon(b,l); if(c) return {line:l,common:c,sample:b[l[0]]};}
+  return null;
+}
+function emptyCells(b){const e=[];for(let i=0;i<16;i++)if(b[i]===null)e.push(i);return e;}
+function winCells(b,p,useSq){
+  const r=[];
+  for(let i=0;i<16;i++){ if(b[i]!==null)continue; b[i]=p; if(findWin(b,useSq))r.push(i); b[i]=null; }
+  return r;
+}
+function dangerPieces(b,rem,useSq){return rem.filter(p=>winCells(b,p,useSq).length>0);}
+/* 3개가 찬 줄 중 공통 속성이 남아 있는 "위험한 줄" */
+function threatLines(b,useSq){
+  const out=[];
+  for(const l of linesOf(useSq)){
+    const f=l.filter(i=>b[i]!==null);
+    if(f.length!==3)continue;
+    let and=15,or=0; f.forEach(i=>{and&=b[i];or|=b[i];});
+    const c=(and|(~or&15))&15;
+    if(c) out.push({line:l,common:c,gap:l.find(i=>b[i]===null),sample:b[f[0]]});
+  }
+  return out;
+}
+
+/* ============================================================
+   2. 조각 그리기 (유사 3D SVG · 기둥 길이로 '키'를 표현)
+   ============================================================ */
+function pieceSVG(p,opts={}){
+  const tall=p&1, dark=p&2, square=p&4, hole=p&8;
+  const grad = dark?'url(#bodyD)':'url(#bodyL)';
+  const top  = dark?'#6B472C':'#F5E4BE';
+  const holeC= dark?'#1B0F06':'#B99A63';
+  const edge = dark?'rgba(0,0,0,.55)':'rgba(90,60,20,.45)';
+  const base=88, h=tall?50:28, ty=base-h, hw=26, ry=11, cx=50;
+  let body,topFace;
+  if(square){
+    body=`<path d="M${cx-hw} ${ty} L${cx-hw} ${base} L${cx} ${base+ry} L${cx+hw} ${base} L${cx+hw} ${ty} L${cx} ${ty+ry} Z" fill="${grad}" stroke="${edge}" stroke-width="1.4"/>`;
+    topFace=`<path d="M${cx-hw} ${ty} L${cx} ${ty-ry} L${cx+hw} ${ty} L${cx} ${ty+ry} Z" fill="${top}" stroke="${edge}" stroke-width="1.4"/>`;
+  }else{
+    body=`<path d="M${cx-hw} ${ty} L${cx-hw} ${base} A${hw} ${ry} 0 0 0 ${cx+hw} ${base} L${cx+hw} ${ty} Z" fill="${grad}" stroke="${edge}" stroke-width="1.4"/>`;
+    topFace=`<ellipse cx="${cx}" cy="${ty}" rx="${hw}" ry="${ry}" fill="${top}" stroke="${edge}" stroke-width="1.4"/>`;
+  }
+  const holeSVG = hole
+    ? `<ellipse cx="${cx}" cy="${ty+0.6}" rx="9.5" ry="4.2" fill="${holeC}"/>
+       <ellipse cx="${cx}" cy="${ty-0.6}" rx="9.5" ry="4.2" fill="none" stroke="${edge}" stroke-width="1.1"/>` : '';
+  const shadow = opts.noShadow?'' : `<ellipse cx="${cx}" cy="${base+ry+2}" rx="${hw+2}" ry="4.5" fill="rgba(0,0,0,.3)"/>`;
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${pieceName(p)}">${shadow}${body}${topFace}${holeSVG}</svg>`;
+}
+
+/* ============================================================
+   3. 상태
+   ============================================================ */
+const S={
+  si:0,
+  board:Array(16).fill(null),
+  held:null,
+  phase:'none',        // none | place | pick | over
+  turn:'you',
+  filter:null,
+  inspected:null,
+  seen:new Set(),
+  tried:new Set(),
+  findIdx:0,
+  demoTimer:null,
+  hi:[],               // 하이라이트 줄
+  hiWin:false,
+  done:false,
+  flash:null,
+  banner:'',
+  markSafe:false,      // 트레이에 안전/위험 표시
+  markDanger:false,
+  hintWin:false,
+  sub:0,
+  setting:{diff:'normal', hint:true, sq:false},
+  busy:false,
+  result:null,
+  maxSi:0,
+  cleared:new Set(),
+};
+const usedSet=()=>{
+  const u=new Set();
+  S.board.forEach(p=>{if(p!==null)u.add(p);});
+  if(S.held!==null)u.add(S.held);
+  return u;
+};
+const remaining=()=>{const u=usedSet();const r=[];for(let i=0;i<16;i++)if(!u.has(i))r.push(i);return r;};
+
+function reset({board={},held=null,phase='none'}={}){
+  S.board=Array(16).fill(null);
+  Object.entries(board).forEach(([k,v])=>S.board[+k]=v);
+  S.held=held; S.phase=phase; S.turn='you';
+  S.hi=[];S.hiWin=false;S.banner='';S.filter=null;S.inspected=null;
+  S.markSafe=false;S.markDanger=false;S.hintWin=false;S.result=null;S.busy=false;
+}
+function flash(kind,msg){S.flash={kind,msg};}
+
+/* ============================================================
+   4. 튜토리얼 대본
+   ============================================================ */
+const CHAPTERS=['조각 알기','이기는 줄','순서 규칙','조심하기','연습 문제','실전 대국'];
+
+const FIND_LIST=[P(1,0,0,1), P(0,1,1,0), P(1,1,1,1)];
+
+const STEPS=[
+/* ───────── 1장. 조각 알기 ───────── */
+{ch:0,stage:'inspect',title:'조각을 눌러 보세요',
+ narr:`콰트로 조각은 모두 <b>16개</b>예요.<br>똑같이 생긴 조각은 하나도 없어요.<br><br><span class="kw">조각 상자</span>에서 조각을 <b>4개</b> 눌러, 어떻게 다른지 살펴보세요.`,
+ enter(){reset();S.seen=new Set();S.inspected=null;},
+ onPiece(i){S.inspected=i;S.seen.add(i);if(S.seen.size>=4)S.done=true;},
+ status:()=>`살펴본 조각 ${S.seen.size} / 4`},
+
+{ch:0,stage:'filter',title:'조각을 나누는 4가지 기준',
+ narr:`모든 조각은 <span class="kw">키 · 색 · 모양 · 윗면</span> 이렇게 4가지로 나눌 수 있어요.<br><br><b>키 · 색 · 모양 · 윗면</b> 버튼을 눌러 보세요. 같은 종류끼리 <b>8개씩</b> 모여요.`,
+ enter(){reset();S.tried=new Set();S.filter=null;},
+ onFilter(k){S.filter=(S.filter===k?null:k);if(S.filter)S.tried.add(k);if(S.tried.size>=4)S.done=true;},
+ status:()=>`눌러본 버튼 ${S.tried.size} / 4`},
+
+{ch:0,stage:'find',title:'조각을 찾아보세요',
+ narr:`화면에 적힌 조각을 <span class="kw">조각 상자</span>에서 찾아 눌러 보세요.<br>4가지 특징이 모두 맞는 조각은 <b>딱 하나</b>예요.`,
+ enter(){reset();S.findIdx=0;},
+ onPiece(i){
+   const t=FIND_LIST[S.findIdx];
+   if(i===t){
+     S.findIdx++;
+     if(S.findIdx>=FIND_LIST.length){S.done=true;flash('ok','모두 맞혔어요! 조각 읽는 법을 익혔네요.');}
+     else flash('ok','정답이에요! 다음 문제예요.');
+   }else{
+     const diff=ATTRS.filter(a=>(i&a.bit)!==(t&a.bit)).map(a=>a.key).join(', ');
+     flash('no',`아니에요. ${diff} 이(가) 달라요. 다시 찾아보세요.`);
+   }
+ },
+ status:()=>`맞힌 문제 ${S.findIdx} / ${FIND_LIST.length}`},
+
+/* ───────── 2장. 이기는 줄 ───────── */
+{ch:1,stage:'board',title:'"콰트로!" 하고 외치는 순간',
+ narr:`한 줄에 놓인 <b>4개 조각</b>이 <span class="kw">같은 점 하나</span>라도 있으면 이겨요.<br><br>보드의 맨 윗줄을 보세요. 키도 모양도 다르지만 <b>네 개 모두 어두운색</b>이에요. 그래서 <b>콰트로!</b>`,
+ free:true,
+ enter(){
+   reset({board:{0:P(1,1,0,0),1:P(0,1,1,0),2:P(1,1,1,1),3:P(0,1,0,1)}});
+   S.hi=[[0,1,2,3]];S.hiWin=true;S.banner='<span class="big">콰트로!</span> 네 개 모두 어두운색';
+ }},
+
+{ch:1,stage:'board',title:'이 줄은 콰트로일까요?',
+ narr:`보드에 놓인 네 조각을 잘 보세요.<br><span class="kw">키 · 색 · 모양 · 윗면</span> 중에 <b>모두 똑같은 것</b>이 하나라도 있나요?<br><br>아래 버튼으로 답해 보세요.`,
+ quiz:[
+   {b:{4:P(1,0,0,0),5:P(1,1,1,0),6:P(1,0,1,1),7:P(1,1,0,1)},ans:true,why:'네 개 모두 <b>키가 커요</b>. 콰트로!'},
+   {b:{4:P(1,0,0,0),5:P(0,1,0,0),6:P(0,0,1,0),7:P(0,0,0,1)},ans:false,why:'키도 색도 모양도 윗면도 제각각이에요. 같은 점이 하나도 없어요.'},
+   {b:{4:P(0,0,0,1),5:P(1,1,0,1),6:P(0,1,1,1),7:P(1,0,1,1)},ans:true,why:'네 개 모두 <b>구멍이 있어요</b>. 콰트로!'},
+ ],
+ enter(){S.sub=0;this.load();},
+ load(){const q=this.quiz[S.sub];reset({board:q.b});S.hi=[];S.hiWin=false;},
+ choices(){
+   if(S.done||S.sub>=this.quiz.length)return[];
+   return [
+     {label:'콰트로 맞아요',on:()=>this.ans(true)},
+     {label:'아니에요',on:()=>this.ans(false)},
+   ];
+ },
+ ans(v){
+   const q=this.quiz[S.sub];
+   if(v===q.ans){
+     S.hi=[[4,5,6,7]];S.hiWin=q.ans;
+     flash('ok',(q.ans?'맞아요! ':'맞아요! ')+q.why);
+     S.sub++;
+     if(S.sub>=this.quiz.length){S.done=true;}
+     else setTimeout(()=>{this.load();flash('info','다음 줄을 살펴보세요.');render();},1400);
+   }else{
+     flash('no','다시 한 번 살펴보세요. 네 개가 모두 똑같은 점이 있는지 찾아보세요.');
+   }
+ },
+ status(){return `푼 문제 ${Math.min(S.sub,this.quiz.length)} / ${this.quiz.length}`;}},
+
+{ch:1,stage:'board',title:'이기는 줄은 10개',
+ narr:`이기는 줄은 <span class="kw">가로 4줄</span>, <span class="kw">세로 4줄</span>, <span class="kw">대각선 2줄</span> — 모두 <b>10개</b>예요.<br><br>보드 위에서 차례대로 보여 줄게요.`,
+ free:true,
+ enter(){reset();this.play();},
+ play(){
+   clearInterval(S.demoTimer);let k=0;
+   const names=['가로 1줄','가로 2줄','가로 3줄','가로 4줄','세로 1줄','세로 2줄','세로 3줄','세로 4줄','대각선 ↘','대각선 ↙'];
+   const tick=()=>{S.hi=[LINES[k]];S.hiWin=false;S.banner=`${k+1} / 10 · ${names[k]}`;render();k=(k+1)%10;};
+   tick();S.demoTimer=setInterval(tick,750);
+ },
+ leave(){clearInterval(S.demoTimer);},
+ choices(){return [{label:'다시 보기',on:()=>this.play()}];}},
+
+/* ───────── 3장. 순서 규칙 ───────── */
+{ch:2,stage:'flow',title:'가장 중요한 규칙',
+ narr:`콰트로에서 <b>내가 놓을 조각은 내가 못 골라요.</b><br><span class="kw">친구가 골라 줘요.</span><br><br>그래서 조각을 건네줄 때 아주 조심해야 해요.`,
+ free:true,
+ enter(){reset();}},
+
+{ch:2,stage:'board',title:'직접 해 봐요',
+ narr:`친구가 조각을 건네줬어요.<br>1️⃣ <b>빈 칸을 눌러</b> 조각을 놓으세요.<br>2️⃣ 그다음 <b>친구에게 줄 조각</b>을 상자에서 고르세요.<br><br>세 번 반복해 볼게요.`,
+ enter(){
+   reset({held:P(0,0,0,0),phase:'place'});
+   S.rounds=0;S.banner='친구가 준 조각을 빈 칸에 놓으세요';
+ },
+ onCell(i){
+   if(S.phase!=='place'||S.board[i]!==null)return;
+   S.board[i]=S.held;S.held=null;S.phase='pick';
+   S.banner='이번엔 친구에게 줄 조각을 고르세요';
+   flash('info','좋아요! 이제 조각 상자에서 하나를 골라 친구에게 주세요.');
+ },
+ onPiece(i){
+   if(S.phase!=='pick')return;
+   S.phase='none';S.busy=true;
+   S.banner='친구가 생각하고 있어요…';
+   const given=i;
+   setTimeout(()=>{
+     const cells=emptyCells(S.board);
+     const c=cells[Math.floor(Math.random()*cells.length)];
+     S.board[c]=given;
+     S.rounds++;
+     if(S.rounds>=3){
+       S.busy=false;S.phase='none';S.done=true;
+       S.banner='';flash('ok','잘했어요! 놓기 → 건네주기, 이 순서를 기억하세요.');
+     }else{
+       const rem=remaining();
+       S.held=rem[Math.floor(Math.random()*rem.length)];
+       S.phase='place';S.busy=false;
+       S.banner='친구가 새 조각을 줬어요. 빈 칸에 놓으세요';
+       flash('info','친구가 조각을 놓고, 새 조각을 건네줬어요.');
+     }
+     render();
+   },900);
+ },
+ status(){return `연습 ${S.rounds||0} / 3`;}},
+
+/* ───────── 4장. 조심하기 ───────── */
+{ch:3,stage:'board',title:'위험한 조각을 피해요',
+ narr:`보드에 <b>밝은색 세 개</b>가 한 줄에 있어요.<br>여기에 <span class="kw">밝은색 조각</span>을 주면 친구가 바로 이겨요!<br><br>친구에게 줘도 <b>안전한 조각</b>을 골라 보세요. 위험한 조각에는 <b style="color:#F5765F">!</b> 표시를 해 두었어요.`,
+ enter(){
+   reset({board:{4:P(1,0,0,0),5:P(0,0,1,0),6:P(1,0,1,1),9:P(0,1,0,0)},phase:'pick'});
+   S.markDanger=true;S.hi=[[4,5,6,7]];S.banner='친구에게 줄 조각을 고르세요';
+ },
+ onPiece(i){
+   if(S.phase!=='pick')return;
+   const bad=winCells(S.board,i,false);
+   if(bad.length){
+     S.hi=[[4,5,6,7]];
+     flash('no',`위험해요! 이 조각은 ${pieceName(i)} 이에요. 친구가 빈 칸에 놓으면 바로 콰트로예요.`);
+   }else{
+     S.done=true;S.phase='none';
+     flash('ok',`안전해요! ${pieceName(i)} 은(는) 저 줄을 완성하지 못해요.`);
+     S.banner='';
+   }
+ }},
+
+{ch:3,stage:'board',title:'이번엔 표시 없이',
+ narr:`이번엔 위험한 줄이 <b>두 개</b>예요. 표시도 없어요.<br><br>가로줄과 세로줄을 잘 살펴보고, <span class="kw">안전한 조각</span>을 골라 보세요.`,
+ enter(){
+   reset({board:{0:P(1,0,0,0),1:P(1,1,0,1),2:P(1,1,1,0),4:P(0,0,1,1),8:P(0,0,0,1)},phase:'pick'});
+   S.banner='친구에게 줄 조각을 고르세요';
+ },
+ onPiece(i){
+   if(S.phase!=='pick')return;
+   const bad=winCells(S.board,i,false);
+   if(bad.length){
+     const t=threatLines(S.board,false).filter(t=>bad.includes(t.gap));
+     S.hi=t.map(x=>x.line);
+     flash('no',`위험해요! ${commonNames(t[0].common,t[0].sample).join(', ')} 줄이 완성돼요.`);
+   }else{
+     S.done=true;S.phase='none';S.hi=threatLines(S.board,false).map(t=>t.line);
+     flash('ok',`정답! 안전한 조각은 <b>키 작고 어두운</b> 조각 4개뿐이에요.`);
+     S.banner='';
+   }
+ }},
+
+/* ───────── 5장. 연습 문제 ───────── */
+{ch:4,stage:'board',title:'연습 1 · 한 번에 이기기',
+ narr:`손에 든 조각으로 <b>이길 수 있는 칸</b>이 딱 하나 있어요.<br><br>가로 · 세로 · 대각선을 모두 살펴보고 놓아 보세요.`,
+ enter(){
+   reset({board:{8:P(1,0,0,1),9:P(0,1,0,1),10:P(0,0,1,1),0:P(0,0,0,0),5:P(1,1,0,0),6:P(0,1,1,0)},
+          held:P(1,1,1,1),phase:'place'});
+   S.banner='이기는 칸을 찾아 놓으세요';
+ },
+ onCell(i){
+   if(S.phase!=='place'||S.board[i]!==null)return;
+   S.board[i]=S.held;
+   const w=findWin(S.board,false);
+   if(w){
+     S.held=null;S.phase='none';S.done=true;S.hi=[w.line];S.hiWin=true;
+     S.banner='<span class="big">콰트로!</span>';
+     flash('ok',`정답이에요! 네 개 모두 ${commonNames(w.common,w.sample).join(', ')} 이에요.`);
+   }else{
+     S.board[i]=null;
+     flash('no','그 칸은 아니에요. 세 개가 이미 놓인 줄을 찾아보세요.');
+   }
+ }},
+
+{ch:4,stage:'board',title:'연습 2 · 친구를 막아요',
+ narr:`보드 두 번째 줄에 <b>네모 세 개</b>가 있어요. 친구가 네모를 받으면 바로 이겨요.<br><br>손에 든 조각은 <span class="kw">동그라미</span>예요. 이 조각으로 <b>그 줄을 막아</b> 보세요.`,
+ enter(){
+   reset({board:{4:P(1,0,1,0),5:P(0,1,1,0),6:P(1,1,1,1),0:P(0,0,0,0),10:P(1,1,0,1)},
+          held:P(0,0,0,1),phase:'place'});
+   S.hi=[[4,5,6,7]];S.banner='위험한 줄을 막아 보세요';
+ },
+ onCell(i){
+   if(S.phase!=='place'||S.board[i]!==null)return;
+   if(i===7){
+     S.board[7]=S.held;S.held=null;S.phase='none';S.done=true;S.hi=[];
+     S.banner='';flash('ok','완벽해요! 빈 칸을 채워 버리면 그 줄은 더 이상 위험하지 않아요.');
+   }else{
+     flash('no','그 칸에 놓으면 가운데 줄이 그대로 남아요. 빈 칸을 채워 막아 보세요.');
+   }
+ }},
+
+{ch:4,stage:'board',title:'연습 3 · 놓고, 안전하게 건네기',
+ narr:`위험한 줄이 <b>두 개</b>예요.<br>1️⃣ 조각을 놓아 한 줄을 막고,<br>2️⃣ 남은 줄을 생각해서 <span class="kw">안전한 조각</span>을 건네주세요.`,
+ enter(){
+   reset({board:{0:P(0,1,0,0),1:P(1,1,1,0),2:P(0,1,0,1),6:P(1,0,1,1),10:P(1,1,0,1)},
+          held:P(1,0,1,0),phase:'place'});
+   S.hi=threatLines(S.board,false).map(t=>t.line);
+   S.banner='먼저 조각을 놓으세요';
+ },
+ onCell(i){
+   if(S.phase!=='place'||S.board[i]!==null)return;
+   S.board[i]=S.held;S.held=null;
+   const w=findWin(S.board,false);
+   if(w){S.phase='none';S.done=true;S.hi=[w.line];S.hiWin=true;S.banner='<span class="big">콰트로!</span>';
+         flash('ok','우와, 바로 이겨 버렸네요!');return;}
+   S.phase='pick';
+   const t=threatLines(S.board,false);
+   S.hi=t.map(x=>x.line);
+   S.banner='이제 안전한 조각을 골라 주세요';
+   flash(t.length?'info':'ok', t.length
+     ? `아직 위험한 줄이 ${t.length}개 남았어요. ${commonNames(t[0].common,t[0].sample).join(', ')} 조각을 주면 안 돼요.`
+     : '위험한 줄을 모두 없앴어요! 이제 어떤 조각을 줘도 안전해요.');
+ },
+ onPiece(i){
+   if(S.phase!=='pick')return;
+   const bad=winCells(S.board,i,false);
+   if(bad.length){flash('no',`위험해요! 친구가 그 조각으로 바로 이겨요.`);}
+   else{S.done=true;S.phase='none';S.hi=[];S.banner='';
+        flash('ok','훌륭해요! 놓기와 건네기를 모두 안전하게 해냈어요.');}
+ }},
+
+/* ───────── 6장. 실전 ───────── */
+{ch:5,stage:'settings',title:'실전 대국 준비',
+ narr:`이제 배운 것을 모두 써 볼 시간이에요.<br><br>친구(컴퓨터)의 실력과 도움말을 정하고 <b>대국 시작</b>을 눌러 주세요.`,
+ free:true,
+ enter(){reset();}},
+
+{ch:5,stage:'board',title:'실전 대국',
+ narr:`친구가 먼저 조각을 골라 줘요.<br>1️⃣ 받은 조각을 <b>빈 칸에 놓고</b><br>2️⃣ 친구에게 줄 조각을 <b>안전하게</b> 고르세요.<br><br>한 줄을 같은 점으로 채우면 이겨요!`,
+ free:true,
+ enter(){startGame();},
+ choices(){return [{label:'다시 시작',on:()=>{startGame();flash(null,'');}}];},
+ status(){return S.result?'':`남은 조각 ${remaining().length}개 · 실력 ${({easy:'쉬움',normal:'보통',hard:'어려움'})[S.setting.diff]}`;},
+ onCell(i){ humanPlace(i); },
+ onPiece(i){ humanGive(i); }},
+];
+
+/* ============================================================
+   5. 컴퓨터 친구 (AI)
+   ============================================================ */
+let nodes=0; const NODE_CAP=500000;
+function search(b,rem,held,useSq,alpha,beta){
+  const emp=emptyCells(b);
+  if(emp.length===0)return{score:0,cell:null,piece:null};
+  let best={score:-2,cell:emp[0],piece:null};
+  for(const c of emp){
+    b[c]=held;
+    if(findWin(b,useSq)){b[c]=null;return{score:1,cell:c,piece:null};}
+    if(rem.length===0){b[c]=null;if(best.score<0)best={score:0,cell:c,piece:null};continue;}
+    for(const p of rem){
+      if(++nodes>NODE_CAP){b[c]=null;return best.score>-2?best:{score:0,cell:c,piece:p};}
+      const r=search(b,rem.filter(x=>x!==p),p,useSq,-beta,-alpha);
+      const s=-r.score;
+      if(s>best.score)best={score:s,cell:c,piece:p};
+      if(best.score>alpha)alpha=best.score;
+      if(alpha>=beta){b[c]=null;return best;}
+    }
+    b[c]=null;
+  }
+  return best;
+}
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+function aiPlace(){
+  const b=S.board,useSq=S.setting.sq,d=S.setting.diff,rem=remaining();
+  const w=winCells(b,S.held,useSq); if(w.length)return w[0];
+  const emp=emptyCells(b);
+  if(d==='easy')return pick(emp);
+  if(d==='hard'&&emp.length<=6){nodes=0;const r=search(b.slice(),rem,S.held,useSq,-2,2);if(r&&r.cell!=null)return r.cell;}
+  let best=[],bs=-1;
+  for(const c of emp){
+    b[c]=S.held;
+    const safe=rem.filter(p=>winCells(b,p,useSq).length===0).length;
+    b[c]=null;
+    if(safe>bs){bs=safe;best=[c];}else if(safe===bs)best.push(c);
+  }
+  return pick(best.length?best:emp);
+}
+function aiGive(){
+  const b=S.board,useSq=S.setting.sq,d=S.setting.diff,rem=remaining();
+  if(!rem.length)return null;
+  if(d==='easy')return pick(rem);
+  const safe=rem.filter(p=>winCells(b,p,useSq).length===0);
+  if(d==='hard'&&emptyCells(b).length<=6){
+    nodes=0;let best=null,bs=-2;
+    for(const p of (safe.length?safe:rem)){
+      const r=search(b.slice(),rem.filter(x=>x!==p),p,useSq,-2,2);
+      const s=-r.score;
+      if(s>bs){bs=s;best=p;}
+    }
+    if(best!==null)return best;
+  }
+  return safe.length?pick(safe):pick(rem);
+}
+
+function startGame(){
+  reset();
+  S.setting.hintOn=S.setting.hint;
+  const first=Math.floor(Math.random()*16);
+  S.held=first;S.phase='place';S.turn='you';S.result=null;
+  S.hintWin=S.setting.hint;S.markDanger=false;
+  S.banner='친구가 조각을 골라 줬어요. 빈 칸에 놓으세요';
+}
+function endGame(who,w){
+  S.phase='over';S.busy=false;S.result=who;S.hintWin=false;S.markDanger=false;
+  if(w){S.hi=[w.line];S.hiWin=true;}
+  if(who==='you'){S.banner='<span class="big">콰트로! 내가 이겼어요 🎉</span>';flash('ok',`${commonNames(w.common,w.sample).join(', ')} 이(가) 네 개 모였어요. 잘했어요!`);}
+  else if(who==='ai'){S.banner='<span class="big">친구가 콰트로!</span>';flash('no',`${commonNames(w.common,w.sample).join(', ')} 줄이 완성됐어요. 조각을 건네줄 때 한 번 더 살펴봐요.`);}
+  else{S.banner='<span class="big">무승부</span>';flash('info','조각을 다 썼어요. 비겼습니다!');}
+}
+function humanPlace(i){
+  if(S.phase!=='place'||S.busy||S.board[i]!==null)return;
+  S.board[i]=S.held;S.held=null;S.hi=[];
+  const w=findWin(S.board,S.setting.sq);
+  if(w)return endGame('you',w);
+  if(!remaining().length)return endGame('draw');
+  S.phase='pick';S.markDanger=S.setting.hint;S.hintWin=false;
+  S.banner='친구에게 줄 조각을 고르세요';
+  const t=threatLines(S.board,S.setting.sq);
+  if(t.length&&S.setting.hint)flash('info',`조심! ${commonNames(t[0].common,t[0].sample).join(', ')} 줄이 완성되기 직전이에요.`);
+  else flash(null,'');
+}
+function humanGive(i){
+  if(S.phase!=='pick'||S.busy)return;
+  S.held=i;S.phase='none';S.busy=true;S.markDanger=false;
+  S.banner='친구가 생각하고 있어요…';
+  render();
+  setTimeout(()=>{
+    const c=aiPlace();
+    S.board[c]=S.held;S.held=null;
+    const w=findWin(S.board,S.setting.sq);
+    if(w){endGame('ai',w);render();return;}
+    if(!remaining().length){endGame('draw');render();return;}
+    const g=aiGive();
+    S.held=g;S.phase='place';S.busy=false;S.hintWin=S.setting.hint;
+    S.banner='친구가 새 조각을 줬어요. 빈 칸에 놓으세요';
+    render();
+  },700);
+}
+
+/* ============================================================
+   6. 화면 그리기
+   ============================================================ */
+const $=id=>document.getElementById(id);
+const step=()=>STEPS[S.si];
+
+function render(){renderRail();renderGuide();renderStage();renderTray();}
+
+function renderRail(){
+  const cur=step().ch;
+  $('rail').innerHTML=CHAPTERS.map((t,i)=>{
+    const maxCh=STEPS[S.maxSi].ch;
+    const cls=i===cur?'cur':(i<=maxCh?'done':'');
+    return `<button class="${cls}" data-ch="${i}" ${i>maxCh?'disabled':''}>${i+1}. ${t}</button>`;
+  }).join('');
+}
+
+function renderGuide(){
+  const st=step();
+  $('eyebrow').textContent=`${st.ch+1}장 · ${CHAPTERS[st.ch]}`;
+  $('stepTitle').textContent=st.title;
+  $('narr').innerHTML=st.narr;
+  $('status').textContent=st.status?st.status():'';
+  $('flash').innerHTML=S.flash&&S.flash.msg?`<div class="flash ${S.flash.kind||'info'}">${S.flash.msg}</div>`:'';
+  const ch=st.choices?st.choices():[];
+  const box=$('choices');box.innerHTML='';
+  ch.forEach((c,k)=>{
+    const b=document.createElement('button');b.textContent=c.label;
+    b.onclick=()=>{c.on();render();};box.appendChild(b);
+  });
+  $('btnPrev').disabled=S.si===0;
+  const last=S.si===STEPS.length-1;
+  $('btnNext').disabled=last||!(S.done||st.free);
+  $('btnNext').textContent=last?'끝':(STEPS[S.si+1]&&STEPS[S.si+1].ch!==st.ch?`${st.ch+2}장으로`:'다음');
+}
+
+function overlaySVG(){
+  if(!S.hi.length)return'';
+  const c=i=>[13.2+(i%4)*24.5, 13.2+Math.floor(i/4)*24.5];
+  const ls=S.hi.map(l=>{
+    const [x1,y1]=c(l[0]),[x2,y2]=c(l[l.length-1]);
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${S.hiWin?'win':''}"/>`;
+  }).join('');
+  return `<svg class="overlay" viewBox="0 0 100 100" preserveAspectRatio="none">${ls}</svg>`;
+}
+
+function boardHTML(){
+  const winHint = S.hintWin && S.phase==='place' && S.held!==null
+    ? winCells(S.board,S.held,S.setting.sq) : [];
+  const hiCells=new Set();S.hi.forEach(l=>l.forEach(i=>hiCells.add(i)));
+  const cells=S.board.map((p,i)=>{
+    const open = p===null && (S.phase==='place') && !S.busy;
+    const cls=['cell'];
+    if(open)cls.push('open');
+    if(hiCells.has(i)){cls.push('hi');if(S.hiWin)cls.push('won');}
+    if(winHint.includes(i))cls.push('hintwin');
+    return `<${open?'button':'div'} class="${cls.join(' ')}" data-cell="${i}" ${open?`aria-label="${i%4+1}번째 칸, ${Math.floor(i/4)+1}번째 줄"`:''}>${p!==null?pieceSVG(p):''}</${open?'button':'div'}>`;
+  }).join('');
+  return `<div class="board-wrap"><div class="board">${cells}</div>${overlaySVG()}</div>`;
+}
+
+function renderStage(){
+  const st=step();
+  const top=$('stageTop'),main=$('stageMain');
+  top.innerHTML='';main.innerHTML='';
+
+  if(st.stage==='board'){
+    const showHand = S.held!==null || S.phase==='pick';
+    if(showHand){
+      top.innerHTML=`<div class="handbar">
+        ${S.held!==null?`<div class="hand-slot filled">${pieceSVG(S.held,{noShadow:true})}</div>`:''}
+        <div><div class="lbl">${S.held!==null?'놓을 조각':'조각을 건네줄 차례 →'}</div>
+        <div class="sub">${S.held!==null?pieceName(S.held):'조각 상자에서 하나를 고르세요'}</div></div>
+      </div>`;
+    }
+    main.innerHTML=boardHTML();
+  }
+  else if(st.stage==='inspect'){
+    const p=S.inspected;
+    main.innerHTML=`<div class="inspect">
+      <div class="big-piece">${p!==null?pieceSVG(p):`<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="30" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2" stroke-dasharray="6 6"/><text x="50" y="60" text-anchor="middle" fill="#7FA6A1" font-size="9">조각을 눌러요</text></svg>`}</div>
+      <div class="attr-cards">${ATTRS.map(a=>`<div class="acard"><div class="k">${a.key}</div><div class="v">${p!==null?val(p,a):'—'}</div></div>`).join('')}</div>
+    </div>`;
+  }
+  else if(st.stage==='filter'){
+    main.innerHTML=`<div class="filters">${ATTRS.map((a,ai)=>`
+      <div class="frow"><div class="fk">${a.key}</div>
+        <button class="fbtn ${S.filter===ai+':0'?'on':''}" data-f="${ai}:0">${a.off}</button>
+        <button class="fbtn ${S.filter===ai+':1'?'on':''}" data-f="${ai}:1">${a.on}</button>
+      </div>`).join('')}
+      <div style="text-align:center;font-family:var(--mono);font-size:var(--f-sm);color:var(--amber)">
+        ${S.filter?`선택한 조각 8개가 오른쪽에 밝게 보여요`:'버튼을 눌러 보세요'}</div>
+    </div>`;
+  }
+  else if(st.stage==='find'){
+    const t=FIND_LIST[Math.min(S.findIdx,FIND_LIST.length-1)];
+    const done=S.findIdx>=FIND_LIST.length;
+    main.innerHTML=`<div class="findbox">
+      <div class="q">${done?'모두 찾았어요!':`이런 조각을 찾아요`}</div>
+      <div class="chips">${ATTRS.map(a=>`<div class="chip">${val(t,a)}</div>`).join('')}</div>
+      <div style="opacity:${done?1:.35};width:min(24cqw,26cqh);min-width:90px;aspect-ratio:1">${done?pieceSVG(t):''}</div>
+    </div>`;
+  }
+  else if(st.stage==='flow'){
+    const rows=[
+      ['1','<b>친구가</b> 조각을 골라 나에게 줘요'],
+      ['2','<b>나는</b> 그 조각을 빈 칸에 놓아요'],
+      ['3','<b>나는</b> 친구에게 줄 조각을 골라요'],
+      ['4','<b>친구가</b> 그 조각을 놓아요 → 다시 1번으로'],
+    ];
+    main.innerHTML=`<div class="flow">${rows.map(r=>`<div class="fstep"><div class="n">${r[0]}</div><div class="tx">${r[1]}</div></div>`).join('')}
+      <div style="text-align:center;font-size:var(--f-sm);color:var(--amber-2);font-weight:700">조각을 <u>놓는 사람</u>이 아니라 <u>주는 사람</u>이 더 머리를 써야 해요!</div></div>`;
+  }
+  else if(st.stage==='settings'){
+    const d=S.setting;
+    main.innerHTML=`<div class="settings">
+      <div class="srow"><div class="sk">친구 실력</div><div class="seg">
+        <button data-set="diff:easy" class="${d.diff==='easy'?'on':''}">쉬움</button>
+        <button data-set="diff:normal" class="${d.diff==='normal'?'on':''}">보통</button>
+        <button data-set="diff:hard" class="${d.diff==='hard'?'on':''}">어려움</button></div></div>
+      <div class="srow"><div class="sk">도움말</div><div class="seg">
+        <button data-set="hint:1" class="${d.hint?'on':''}">켜기</button>
+        <button data-set="hint:0" class="${!d.hint?'on':''}">끄기</button></div></div>
+      <div class="srow"><div class="sk">2×2 규칙</div><div class="seg">
+        <button data-set="sq:0" class="${!d.sq?'on':''}">쓰지 않음</button>
+        <button data-set="sq:1" class="${d.sq?'on':''}">함께 쓰기</button></div></div>
+      <div style="font-size:var(--f-xs);color:var(--muted);line-height:1.6">
+        · <b>도움말</b>을 켜면 이길 수 있는 칸과 위험한 조각을 표시해요.<br>
+        · <b>2×2 규칙</b>은 붙어 있는 네 칸(정사각형)도 이기는 줄로 쳐요. 더 어려워요.</div>
+    </div>`;
+  }
+  $('banner').innerHTML=S.banner||'';
+}
+
+function renderTray(){
+  const st=step();
+  const used=usedSet();
+  const rem=remaining();
+  $('trayCount').textContent=`남은 조각 ${rem.length}개`;
+
+  let danger=[];
+  if((S.markDanger)&&S.phase==='pick')danger=dangerPieces(S.board,rem,S.setting.sq);
+
+  const pickable = !S.busy && (
+    (st.stage==='inspect') ||
+    (st.stage==='find') ||
+    (S.phase==='pick')
+  );
+
+  let hint='';
+  if(S.phase==='pick'&&pickable)hint='조각을 눌러 친구에게 주세요';
+  else if(st.stage==='inspect')hint='조각을 눌러 살펴보세요';
+  else if(st.stage==='find')hint='알맞은 조각을 찾아 누르세요';
+  $('trayHint').textContent=hint;
+
+  const html=[];
+  for(let i=0;i<16;i++){
+    const gone=used.has(i);
+    const cls=['slot'];
+    if(gone)cls.push('gone');
+    if(!gone&&pickable)cls.push('pickable');
+    if(S.filter){
+      const [ai,v]=S.filter.split(':');
+      const on=((i&ATTRS[+ai].bit)?1:0)===+v;
+      if(!on)cls.push('dim');
+    }
+    if(st.stage==='inspect'&&S.inspected===i)cls.push('sel');
+    const badge = (!gone&&danger.includes(i))?'<span class="warn">!</span>':'';
+    const tag = (!gone&&pickable)?'button':'div';
+    html.push(`<${tag} class="${cls.join(' ')}" data-piece="${i}" title="${pieceName(i)}">${pieceSVG(i)}${badge}</${tag}>`);
+  }
+  $('trayGrid').innerHTML=html.join('');
+}
+
+/* ============================================================
+   7. 이벤트
+   ============================================================ */
+function goto(i){
+  const old=step();
+  if(old.leave)old.leave.call(old);
+  clearInterval(S.demoTimer);
+  if(S.done)S.cleared.add(S.si);
+  S.si=Math.max(0,Math.min(STEPS.length-1,i));
+  S.maxSi=Math.max(S.maxSi,S.si);
+  S.flash=null;
+  const st=step();
+  S.done=!!st.free || S.cleared.has(S.si);
+  if(st.enter)st.enter.call(st);
+  render();
+}
+$('btnNext').onclick=()=>goto(S.si+1);
+$('btnPrev').onclick=()=>goto(S.si-1);
+$('rail').onclick=e=>{
+  const b=e.target.closest('button[data-ch]');if(!b||b.disabled)return;
+  const ch=+b.dataset.ch;
+  const idx=STEPS.findIndex(s=>s.ch===ch);
+  if(idx>=0)goto(idx);
+};
+$('stageMain').onclick=e=>{
+  const st=step();
+  const cell=e.target.closest('[data-cell]');
+  if(cell&&st.onCell){st.onCell.call(st,+cell.dataset.cell);render();return;}
+  const f=e.target.closest('[data-f]');
+  if(f&&st.onFilter){st.onFilter.call(st,f.dataset.f);render();return;}
+  const s=e.target.closest('[data-set]');
+  if(s){const [k,v]=s.dataset.set.split(':');
+    if(k==='diff')S.setting.diff=v; else S.setting[k]=(v==='1');
+    render();return;}
+};
+$('trayGrid').onclick=e=>{
+  const b=e.target.closest('[data-piece]');if(!b||b.tagName!=='BUTTON')return;
+  const st=step();
+  if(st.onPiece){st.onPiece.call(st,+b.dataset.piece);render();}
+};
+window.addEventListener('keydown',e=>{
+  if(e.target.tagName==='BUTTON')return;
+  if(e.key==='ArrowRight'&&!$('btnNext').disabled)goto(S.si+1);
+  if(e.key==='ArrowLeft'&&!$('btnPrev').disabled)goto(S.si-1);
+});
+
+goto(0);
+</script>
+</body>
+</html>

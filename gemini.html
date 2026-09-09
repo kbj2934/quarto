@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>QUARTO (콰트로) - 3D 입체 튜토리얼 & 대전</title>
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 15%, #1e293b, #0b1120 90%);
+      --panel-bg: rgba(30, 41, 59, 0.8);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --accent-gold: #f59e0b;
+      --accent-gold-glow: rgba(245, 158, 11, 0.45);
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --board-wood: #26160c;
+      --board-border: #4a2d18;
+      --cell-bg: #140b06;
+      --cell-hover: rgba(245, 158, 11, 0.25);
+      --font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* 상단 네비게이션 헤더 */
+    header {
+      height: 56px;
+      padding: 0 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--panel-border);
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(12px);
+      z-index: 30;
+      flex-shrink: 0;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #d97706, #f59e0b);
+      color: #fff;
+      font-weight: 900;
+      font-size: 0.95rem;
+      letter-spacing: 1.5px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px var(--accent-gold-glow);
+    }
+
+    .logo-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+
+    .mode-nav {
+      display: flex;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      gap: 3px;
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .mode-btn.active {
+      background: var(--accent-gold);
+      color: #0f172a;
+      box-shadow: 0 2px 10px var(--accent-gold-glow);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    /* 메인 3열 레이아웃 (FHD PC 기본) */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(310px, 360px) 1fr minmax(320px, 400px);
+      gap: 1.25rem;
+      padding: 1.25rem;
+      max-width: 1560px;
+      margin: 0 auto;
+      width: 100%;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      backdrop-filter: blur(16px);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 좌측: 가이드/상태 패널 */
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .guide-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 0.75rem;
+    }
+
+    .step-badge {
+      background: rgba(6, 182, 212, 0.18);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+    }
+
+    .guide-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .guide-content {
+      font-size: 0.92rem;
+      line-height: 1.65;
+      color: #cbd5e1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .highlight-box {
+      background: rgba(0, 0, 0, 0.35);
+      border-left: 4px solid var(--accent-gold);
+      padding: 0.85rem 1rem;
+      border-radius: 0 10px 10px 0;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .trait-legend-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .legend-item {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 8px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .action-instruction {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
+      border: 1.5px dashed rgba(245, 158, 11, 0.5);
+      padding: 0.85rem;
+      border-radius: 12px;
+      font-weight: 600;
+      color: #fbbf24;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08);
+      animation: pulseInstruction 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseInstruction {
+      0%, 100% { border-color: rgba(245, 158, 11, 0.5); transform: scale(1); }
+      50% { border-color: rgba(245, 158, 11, 0.9); transform: scale(1.01); }
+    }
+
+    .step-nav {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0f172a;
+      box-shadow: 0 4px 14px var(--accent-gold-glow);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--accent-gold-glow);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+      border: 1px solid var(--panel-border);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* 중앙: 3D 보드 영역 */
+    .center-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .game-status-bar {
+      margin-bottom: 0.85rem;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 0.55rem 1.4rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-gold);
+      box-shadow: 0 0 10px var(--accent-gold);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .board-wrapper {
+      position: relative;
+      width: min(52vh, 470px, 86vw);
+      aspect-ratio: 1 / 1;
+      padding: 16px;
+      background: linear-gradient(145deg, #3d2314, #1f1008);
+      border: 8px solid var(--board-border);
+      border-radius: 28px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), inset 0 2px 4px rgba(255, 255, 255, 0.25), inset 0 -4px 10px rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 10px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .cell {
+      background: radial-gradient(circle at 50% 40%, #24140a, #110804 80%);
+      border-radius: 16px;
+      border: 2px solid rgba(139, 92, 44, 0.4);
+      box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.85), 0 1px 2px rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      padding: 2px;
+    }
+
+    .cell:hover:not(.occupied) {
+      background: radial-gradient(circle at 50% 40%, rgba(245, 158, 11, 0.25), #110804 80%);
+      border-color: var(--accent-gold);
+      transform: scale(0.97);
+    }
+
+    .cell.occupied {
+      cursor: default;
+    }
+
+    .cell.highlight-target {
+      border-color: #38bdf8;
+      background: radial-gradient(circle at 50% 40%, rgba(56, 189, 248, 0.35), #110804 80%);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.7), inset 0 0 10px rgba(56, 189, 248, 0.5);
+      animation: targetPulse 1.2s infinite alternate;
+    }
+
+    .cell.winning-cell {
+      border-color: #f43f5e;
+      background: radial-gradient(circle at 50% 40%, rgba(244, 63, 94, 0.45), #110804 80%);
+      box-shadow: 0 0 28px rgba(244, 63, 94, 0.9);
+      animation: winGlow 1s infinite alternate;
+      z-index: 5;
+    }
+
+    @keyframes targetPulse {
+      from { transform: scale(0.97); box-shadow: 0 0 6px #38bdf8; }
+      to { transform: scale(1.02); box-shadow: 0 0 24px #38bdf8; }
+    }
+
+    @keyframes winGlow {
+      from { transform: scale(1); }
+      to { transform: scale(1.06); }
+    }
+
+    /* 우측: 전달된 말 & 16개 말 보관함 */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .section-title {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .selected-piece-box {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-height: 94px;
+    }
+
+    .selected-slot {
+      width: 74px;
+      height: 74px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px dashed rgba(245, 158, 11, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 4px;
+      position: relative;
+    }
+
+    .selected-slot.has-piece {
+      border-style: solid;
+      border-color: var(--accent-gold);
+      background: rgba(245, 158, 11, 0.12);
+      box-shadow: 0 0 16px var(--accent-gold-glow);
+    }
+
+    .selected-meta {
+      flex: 1;
+    }
+
+    .selected-status {
+      font-size: 0.8rem;
+      color: var(--accent-gold);
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .selected-traits {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .trait-badge {
+      font-size: 0.74rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .rack-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .piece-card {
+      aspect-ratio: 1 / 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      padding: 2px;
+    }
+
+    .piece-card:hover:not(.used):not(.disabled) {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent-gold);
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+      z-index: 5;
+    }
+
+    .piece-card.active-selected {
+      border-color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.22);
+      box-shadow: 0 0 14px rgba(6, 182, 212, 0.6);
+    }
+
+    .piece-card.used {
+      opacity: 0.12;
+      cursor: not-allowed;
+      filter: grayscale(1);
+    }
+
+    .piece-card.disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+
+    /* 3D Isometric SVG 스타일 */
+    .quarto-piece-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.65));
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .cell .quarto-piece-svg {
+      transform: scale(0.95);
+    }
+
+    .cell:hover .quarto-piece-svg {
+      transform: scale(1.04);
+    }
+
+    /* 모달 팝업 */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 1.25rem;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: #1e293b;
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      padding: 2.2rem;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.9);
+      text-align: center;
+      transform: scale(0.92);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.show .modal-box {
+      transform: scale(1);
+    }
+
+    .modal-icon {
+      font-size: 3.4rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.7rem;
+      color: #fff;
+    }
+
+    .modal-desc {
+      font-size: 0.96rem;
+      color: #cbd5e1;
+      line-height: 1.7;
+      margin-bottom: 1.6rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    /* 토스트 알림 */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--accent-gold);
+      color: #fff;
+      padding: 0.8rem 1.6rem;
+      border-radius: 9999px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 90;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* 반응형 미디어 쿼리 (태블릿 16:10 / 4:3) */
+    @media (max-width: 1120px) {
+      main {
+        grid-template-columns: 300px 1fr;
+        grid-template-rows: auto auto;
+      }
+      .right-panel {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        align-items: center;
+        gap: 1.25rem;
+      }
+      .rack-grid {
+        grid-template-columns: repeat(8, 1fr);
+        flex: 1;
+      }
+      .selected-piece-box {
+        width: 290px;
+        flex-shrink: 0;
+      }
+    }
+
+    /* 반응형 미디어 쿼리 (모바일 9:20 세로형) */
+    @media (max-width: 768px) {
+      header {
+        padding: 0 0.75rem;
+      }
+      .logo-text {
+        display: none;
+      }
+      .mode-btn {
+        padding: 5px 8px;
+        font-size: 0.76rem;
+      }
+      main {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.75rem;
+      }
+      .panel {
+        padding: 0.85rem;
+        border-radius: 14px;
+      }
+      .board-wrapper {
+        width: min(88vw, 360px);
+        padding: 10px;
+      }
+      .board-grid {
+        gap: 6px;
+      }
+      .right-panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .rack-grid {
+        grid-template-columns: repeat(8, 1fr);
+        gap: 4px;
+        padding: 6px;
+      }
+      .selected-piece-box {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 헤더 -->
+  <header>
+    <div class="logo-group">
+      <span class="logo-badge">QUARTO</span>
+      <span class="logo-text">콰트로 3D 튜토리얼</span>
+    </div>
+
+    <nav class="mode-nav">
+      <button class="mode-btn active" id="btn-mode-tutorial" onclick="App.setMode('tutorial')">
+        📖 튜토리얼
+      </button>
+      <button class="mode-btn" id="btn-mode-ai" onclick="App.setMode('ai')">
+        🤖 AI 대전
+      </button>
+      <button class="mode-btn" id="btn-mode-pvp" onclick="App.setMode('pvp')">
+        👥 2인 로컬
+      </button>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-btn" id="btn-sound" title="소리 켜기/끄기" onclick="Sound.toggle()">
+        🔊
+      </button>
+      <button class="icon-btn" title="다시 시작" onclick="App.restartCurrentMode()">
+        🔄
+      </button>
+    </div>
+  </header>
+
+  <!-- 메인 영역 -->
+  <main>
+    <!-- 좌측: 가이드/상태 패널 -->
+    <section class="panel left-panel">
+      <div class="guide-header">
+        <span class="step-badge" id="step-badge">STAGE 1 / 4</span>
+        <span id="turn-indicator" style="font-size: 0.82rem; color: var(--accent-gold); font-weight: 700;"></span>
+      </div>
+
+      <h2 class="guide-title" id="guide-title">말의 4가지 입체 속성</h2>
+
+      <div class="guide-content" id="guide-content">
+        <!-- JS로 단계별 내용 삽입 -->
+      </div>
+
+      <div class="step-nav" id="tutorial-nav">
+        <button class="btn btn-secondary" id="btn-prev-step" onclick="Tutorial.prevStep()" disabled>
+          이전 단계
+        </button>
+        <button class="btn btn-primary" id="btn-next-step" onclick="Tutorial.nextStep()" disabled>
+          다음 단계 ➔
+        </button>
+      </div>
+    </section>
+
+    <!-- 중앙: 3D 보드 -->
+    <section class="panel center-panel">
+      <div class="game-status-bar" id="game-status-bar">
+        <div class="status-dot"></div>
+        <span id="status-text">배치할 빈 칸을 선택하세요</span>
+      </div>
+
+      <div class="board-wrapper">
+        <div class="board-grid" id="board-grid">
+          <!-- 16개 셀 생성 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 우측: 전달받은 말 & 16개 보관함 -->
+    <section class="panel right-panel">
+      <div class="section-title">
+        <span id="slot-heading">현재 전달받은 말</span>
+        <span id="rack-count" style="font-size: 0.75rem;">남은 말: 16개</span>
+      </div>
+
+      <div class="selected-piece-box">
+        <div class="selected-slot" id="selected-slot">
+          <span style="font-size: 0.75rem; color: var(--text-muted);">없음</span>
+        </div>
+        <div class="selected-meta">
+          <div class="selected-status" id="selected-status">말 선택 대기</div>
+          <div class="selected-traits" id="selected-traits">
+            <span class="trait-badge">속성 분석 대기</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top: 0.5rem;">
+        <span id="rack-title">말 보관함 (16개 원목 블록)</span>
+      </div>
+
+      <div class="rack-grid" id="rack-grid">
+        <!-- 16개 말 카드 생성 -->
+      </div>
+    </section>
+  </main>
+
+  <!-- 모달 팝업 -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-icon" id="modal-icon">🏆</div>
+      <h3 class="modal-title" id="modal-title">QUARTO! 콰트로 달성!</h3>
+      <p class="modal-desc" id="modal-desc">
+        축하합니다! 4개의 말이 공통 속성을 공유하여 라인을 완성했습니다.
+      </p>
+      <div class="modal-actions" id="modal-actions">
+        <button class="btn btn-primary" onclick="App.closeModal()">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토스트 알림 -->
+  <div class="toast" id="toast">
+    <span id="toast-icon">ℹ️</span>
+    <span id="toast-msg">알림 메시지</span>
+  </div>
+
+  <!-- JS 로직 -->
+  <script>
+    /* --- 사운드 신시사이저 (Web Audio API) --- */
+    const Sound = {
+      enabled: true,
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      },
+      toggle() {
+        this.enabled = !this.enabled;
+        const btn = document.getElementById('btn-sound');
+        btn.textContent = this.enabled ? '🔊' : '🔇';
+        App.showToast(this.enabled ? '사운드가 켜졌습니다.' : '사운드가 꺼졌습니다.');
+      },
+      playTone(freq, duration, type = 'sine') {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      },
+      click() { this.playTone(620, 0.08, 'sine'); },
+      place() { this.playTone(280, 0.16, 'triangle'); },
+      select() { this.playTone(840, 0.12, 'sine'); },
+      quarto() {
+        if (!this.enabled) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((n, i) => {
+          setTimeout(() => this.playTone(n, 0.35, 'triangle'), i * 110);
+        });
+      },
+      error() { this.playTone(180, 0.25, 'sawtooth'); }
+    };
+
+    /* --- 3D 입체 SVG 생성기 --- */
+    // 비트마스크 정의:
+    // bit 3 (8): 색상 -> 0 = 밝은 원목, 1 = 어두운 원목
+    // bit 2 (4): 모양 -> 0 = 원기둥, 1 = 사각기둥
+    // bit 1 (2): 키 -> 0 = 키 큼(48px), 1 = 키 작음(24px)
+    // bit 0 (1): 상단 -> 0 = 꽉 참(Solid), 1 = 구멍 뚫림(Hollow)
+    const PieceData = {
+      getColor(id) { return (id & 8) ? '어두운색' : '밝은색'; },
+      getShape(id) { return (id & 4) ? '사각기둥' : '원기둥'; },
+      getHeight(id) { return (id & 2) ? '키 작음' : '키 큼'; },
+      getTop(id) { return (id & 1) ? '구멍 있음' : '꽉 참'; },
+      getKoreanTraits(id) {
+        return [
+          (id & 8) ? '어두운 원목' : '밝은 원목',
+          (id & 4) ? '사각기둥' : '원기둥',
+          (id & 2) ? '키 작음' : '키 큼',
+          (id & 1) ? '구멍 있음' : '꽉 참'
+        ];
+      },
+      generate3DSVG(id) {
+        if (id === null || id === undefined) return '';
+        const isDark = (id & 8) !== 0;
+        const isSquare = (id & 4) !== 0;
+        const isShort = (id & 2) !== 0;
+        const isHollow = (id & 1) !== 0;
+
+        let cTop, cSideLeft, cSideRight, cStroke, cHole, cHoleBottom;
+        if (!isDark) {
+          // 밝은 자작나무/오크 원목
+          cTop = "#F8E7CE";
+          cSideLeft = "#E4C597";
+          cSideRight = "#C8A36E";
+          cStroke = "#8A6538";
+          cHole = "#5A3F1F";
+          cHoleBottom = "#35220E";
+        } else {
+          // 어두운 호두나무/월넛 원목
+          cTop = "#6F4D3C";
+          cSideLeft = "#523628";
+          cSideRight = "#382117";
+          cStroke = "#20120B";
+          cHole = "#201108";
+          cHoleBottom = "#0B0502";
+        }
+
+        const cx = 50;
+        const baseY = 80;
+        const height = isShort ? 24 : 48;
+        const topY = baseY - height;
+
+        const elements = [];
+
+        // 바닥 입체 그림자
+        elements.push(`<ellipse cx="${cx}" cy="${baseY + 4}" rx="32" ry="12" fill="rgba(0,0,0,0.45)" filter="blur(2px)"/>`);
+
+        if (!isSquare) {
+          // --- 3D 원기둥(Cylinder) ---
+          const rx = 26;
+          const ry = 12;
+
+          const bodyPath = `M ${cx - rx} ${topY} L ${cx - rx} ${baseY} A ${rx} ${ry} 0 0 0 ${cx + rx} ${baseY} L ${cx + rx} ${topY} Z`;
+          elements.push(`<path d="${bodyPath}" fill="${cSideRight}" stroke="${cStroke}" stroke-width="2"/>`);
+
+          const highlightPath = `M ${cx - rx} ${topY} L ${cx - rx} ${baseY} A ${rx} ${ry} 0 0 0 ${cx} ${baseY + ry} L ${cx} ${topY + ry} A ${rx} ${ry} 0 0 1 ${cx - rx} ${topY} Z`;
+          elements.push(`<path d="${highlightPath}" fill="${cSideLeft}" opacity="0.85"/>`);
+
+          elements.push(`<ellipse cx="${cx}" cy="${topY}" rx="${rx}" ry="${ry}" fill="${cTop}" stroke="${cStroke}" stroke-width="2"/>`);
+
+          if (isHollow) {
+            const hrx = 11;
+            const hry = 5.5;
+            elements.push(`<ellipse cx="${cx}" cy="${topY}" rx="${hrx}" ry="${hry}" fill="${cHole}" stroke="${cStroke}" stroke-width="1.5"/>`);
+            elements.push(`<path d="M ${cx - hrx} ${topY} A ${hrx} ${hry} 0 0 0 ${cx + hrx} ${topY} L ${cx + hrx} ${topY + 6} A ${hrx} ${hry} 0 0 1 ${cx - hrx} ${topY + 6} Z" fill="${cHoleBottom}"/>`);
+          } else {
+            elements.push(`<ellipse cx="${cx}" cy="${topY}" rx="${rx * 0.5}" ry="${ry * 0.5}" fill="none" stroke="${cStroke}" stroke-width="0.8" opacity="0.35"/>`);
+          }
+        } else {
+          // --- 3D 사각기둥(Square Prism) ---
+          const dx = 24;
+          const dy = 12;
+
+          const pTop = [cx, topY - dy];
+          const pRight = [cx + dx, topY];
+          const pBottom = [cx, topY + dy];
+          const pLeft = [cx - dx, topY];
+
+          const bRight = [cx + dx, baseY];
+          const bBottom = [cx, baseY + dy];
+          const bLeft = [cx - dx, baseY];
+
+          // 좌측면
+          const leftFace = `M ${pLeft[0]} ${pLeft[1]} L ${pBottom[0]} ${pBottom[1]} L ${bBottom[0]} ${bBottom[1]} L ${bLeft[0]} ${bLeft[1]} Z`;
+          elements.push(`<path d="${leftFace}" fill="${cSideLeft}" stroke="${cStroke}" stroke-width="2" stroke-linejoin="round"/>`);
+
+          // 우측면
+          const rightFace = `M ${pBottom[0]} ${pBottom[1]} L ${pRight[0]} ${pRight[1]} L ${bRight[0]} ${bRight[1]} L ${bBottom[0]} ${bBottom[1]} Z`;
+          elements.push(`<path d="${rightFace}" fill="${cSideRight}" stroke="${cStroke}" stroke-width="2" stroke-linejoin="round"/>`);
+
+          // 상단면 (다이아몬드)
+          const topFace = `M ${pTop[0]} ${pTop[1]} L ${pRight[0]} ${pRight[1]} L ${pBottom[0]} ${pBottom[1]} L ${pLeft[0]} ${pLeft[1]} Z`;
+          elements.push(`<path d="${topFace}" fill="${cTop}" stroke="${cStroke}" stroke-width="2" stroke-linejoin="round"/>`);
+
+          if (isHollow) {
+            const hdx = 10;
+            const hdy = 5;
+            const hpTop = [cx, topY - hdy];
+            const hpRight = [cx + hdx, topY];
+            const hpBottom = [cx, topY + hdy];
+            const hpLeft = [cx - hdx, topY];
+            const holeFace = `M ${hpTop[0]} ${hpTop[1]} L ${hpRight[0]} ${hpRight[1]} L ${hpBottom[0]} ${hpBottom[1]} L ${hpLeft[0]} ${hpLeft[1]} Z`;
+            elements.push(`<path d="${holeFace}" fill="${cHole}" stroke="${cStroke}" stroke-width="1.5"/>`);
+            const innerWall = `M ${hpLeft[0]} ${hpLeft[1]} L ${hpBottom[0]} ${hpBottom[1]} L ${hpRight[0]} ${hpRight[1]} L ${hpRight[0]} ${hpRight[1] + 5} L ${hpBottom[0]} ${hpBottom[1] + 5} L ${hpLeft[0]} ${hpLeft[1] + 5} Z`;
+            elements.push(`<path d="${innerWall}" fill="${cHoleBottom}"/>`);
+          } else {
+            elements.push(`<ellipse cx="${cx}" cy="${topY}" rx="8" ry="4" fill="none" stroke="${cStroke}" stroke-width="0.8" opacity="0.35"/>`);
+          }
+        }
+
+        return `<svg viewBox="0 0 100 100" class="quarto-piece-svg" xmlns="http://www.w3.org/2000/svg">${elements.join('')}</svg>`;
+      }
+    };
+
+    /* --- 콰트로 라인 & 승리 판정 엔진 --- */
+    const QuartoLines = [
+      [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], // 가로행
+      [0, 4, 8, 12], [1, 5, 9, 13], [2, 6, 10, 14], [3, 7, 11, 15], // 세로열
+      [0, 5, 10, 15], [3, 6, 9, 12] // 대각선
+    ];
+
+    function checkQuarto(board) {
+      for (const line of QuartoLines) {
+        const p = line.map(idx => board[idx]);
+        if (p.some(piece => piece === null || piece === undefined)) continue;
+
+        let commonOnes = 0b1111;
+        let commonZeros = 0b1111;
+        for (const piece of p) {
+          commonOnes &= piece;
+          commonZeros &= (~piece & 0b1111);
+        }
+
+        const sharedTraits = [];
+        if (commonOnes & 8) sharedTraits.push("모두 어두운 원목");
+        if (commonZeros & 8) sharedTraits.push("모두 밝은 원목");
+        if (commonOnes & 4) sharedTraits.push("모두 사각기둥");
+        if (commonZeros & 4) sharedTraits.push("모두 원기둥");
+        if (commonOnes & 2) sharedTraits.push("모두 키 작음");
+        if (commonZeros & 2) sharedTraits.push("모두 키 큼");
+        if (commonOnes & 1) sharedTraits.push("모두 구멍 있음");
+        if (commonZeros & 1) sharedTraits.push("모두 꽉 참");
+
+        if (sharedTraits.length > 0) {
+          return { winningLine: line, traits: sharedTraits };
+        }
+      }
+      return null;
+    }
+
+    /* --- 튜토리얼 컨트롤러 --- */
+    const Tutorial = {
+      step: 1,
+      exploredSet: new Set(),
+
+      init() {
+        this.step = 1;
+        this.exploredSet.clear();
+        this.loadStep(1);
+      },
+
+      loadStep(s) {
+        this.step = s;
+        App.board = Array(16).fill(null);
+        App.selectedPiece = null;
+        App.usedPieces.clear();
+
+        document.getElementById('step-badge').textContent = `STAGE ${s} / 4`;
+        document.getElementById('btn-prev-step').disabled = (s === 1);
+        document.getElementById('btn-next-step').disabled = true;
+
+        const gTitle = document.getElementById('guide-title');
+        const gContent = document.getElementById('guide-content');
+        const statusText = document.getElementById('status-text');
+
+        if (s === 1) {
+          gTitle.textContent = "1단계: 4가지 입체 속성 알아보기";
+          gContent.innerHTML = `
+            <p>콰트로의 16개 원목 말은 <strong>4가지 입체적 특성</strong>의 조합으로 제작되었습니다.</p>
+            <div class="trait-legend-grid">
+              <div class="legend-item">🪵 <strong>색상</strong>: 밝은색 / 어두운색</div>
+              <div class="legend-item">📐 <strong>형태</strong>: 원기둥 / 사각기둥</div>
+              <div class="legend-item">📏 <strong>키</strong>: 키 큼 / 키 작음</div>
+              <div class="legend-item">🕳️ <strong>상단</strong>: 구멍 있음 / 꽉 참</div>
+            </div>
+            <p style="margin-top: 4px;">어떤 두 말도 4가지 속성이 모두 같지 않습니다.</p>
+            <div class="action-instruction" id="action-instruction">
+              👉 우측 보관함의 말들을 클릭해보세요! (탐색: <span id="explore-count">${this.exploredSet.size}</span>/3)
+            </div>
+          `;
+          statusText.textContent = "우측 보관함의 말을 클릭하여 입체 속성을 분석하세요.";
+          App.renderBoard();
+          App.renderRack();
+          App.renderSelectedSlot();
+
+          if (this.exploredSet.size >= 3) {
+            document.getElementById('btn-next-step').disabled = false;
+          }
+        }
+        else if (s === 2) {
+          gTitle.textContent = "2단계: 콰트로(승리 조건) 완성하기";
+          App.board[0] = 0b1000;
+          App.board[1] = 0b1001;
+          App.board[2] = 0b1010;
+          App.usedPieces.add(0b1000).add(0b1001).add(0b1010);
+
+          const given = 0b1011;
+          App.selectedPiece = given;
+          App.usedPieces.add(given);
+
+          gContent.innerHTML = `
+            <p>가로, 세로, 대각선 중 한 줄에 <strong>단 1가지라도 공통 속성</strong>을 가진 말 4개가 모이면 <strong>콰트로!</strong>로 승리합니다.</p>
+            <div class="highlight-box">
+              보드 첫째 줄의 3개 말은 모두 <strong>[어두운 원목]</strong>이자 <strong>[원기둥]</strong>입니다!
+            </div>
+            <p>전달받은 말(우측 상단)도 [어두운 원목 / 원기둥] 속성을 가지고 있습니다.</p>
+            <div class="action-instruction">
+              👉 첫 번째 줄의 마지막 4번째 빈 칸(우측 상단)을 클릭하여 콰트로를 완성하세요!
+            </div>
+          `;
+          statusText.textContent = "첫 번째 줄의 4번째 빈 칸을 클릭하세요.";
+
+          App.renderBoard();
+          App.renderRack();
+          App.renderSelectedSlot();
+          document.querySelectorAll('.cell')[3].classList.add('highlight-target');
+        }
+        else if (s === 3) {
+          gTitle.textContent = "3단계: 콰트로의 핵심! '말 골라주기'";
+          App.board[4] = 0b0000;
+          App.board[5] = 0b0001;
+          App.board[6] = 0b0010;
+          App.usedPieces.add(0b0000).add(0b0001).add(0b0010);
+
+          gContent.innerHTML = `
+            <p>콰트로는 <strong>내가 놓을 말을 상대가 골라주고</strong>, <strong>상대가 놓을 말을 내가 골라주는</strong> 게임입니다.</p>
+            <div class="highlight-box" style="border-left-color: var(--accent-rose);">
+              ⚠️ 둘째 줄에 이미 <strong>[밝은 원목]</strong> 말 3개가 놓여 있습니다!<br>
+              상대에게 [밝은 원목] 말을 넘겨주면 상대가 바로 둘째 줄에 놓고 승리합니다.
+            </div>
+            <p>상대방이 이기지 못하도록 <strong>[어두운 원목]</strong> 말을 골라 건네야 합니다.</p>
+            <div class="action-instruction">
+              👉 우측 보관함에서 안전한 <strong>[어두운 원목]</strong> 말을 골라 클릭하세요!
+            </div>
+          `;
+          statusText.textContent = "상대에게 전달할 안전한 말을 우측 보관함에서 선택하세요.";
+
+          App.renderBoard();
+          App.renderRack();
+          App.renderSelectedSlot();
+        }
+        else if (s === 4) {
+          gTitle.textContent = "4단계: 실전 대각선 퍼즐 풀기";
+          App.board[0] = 0b0001;
+          App.board[5] = 0b1001;
+          App.board[10] = 0b0101;
+          App.usedPieces.add(0b0001).add(0b1001).add(0b0101);
+
+          const givenPiece = 0b1111;
+          App.selectedPiece = givenPiece;
+          App.usedPieces.add(givenPiece);
+
+          gContent.innerHTML = `
+            <p>상대방이 실수로 당신에게 말을 넘겼습니다!</p>
+            <div class="highlight-box">
+              대각선(1번, 6번, 11번 칸)을 보세요. 형태와 색상은 다르지만 모두 <strong>[상단에 구멍이 뚫려있는(Hollow)]</strong> 말들입니다!
+            </div>
+            <p>전달받은 말 역시 [구멍 있음] 속성을 가지고 있습니다.</p>
+            <div class="action-instruction">
+              👉 대각선의 16번째 칸(우측 하단)에 말을 놓아 콰트로 승리를 선언하세요!
+            </div>
+          `;
+          statusText.textContent = "대각선을 완성할 우측 하단 16번째 칸을 클릭하세요.";
+
+          App.renderBoard();
+          App.renderRack();
+          App.renderSelectedSlot();
+          document.querySelectorAll('.cell')[15].classList.add('highlight-target');
+        }
+      },
+
+      onPieceClick(pieceId) {
+        if (this.step === 1) {
+          Sound.click();
+          this.exploredSet.add(pieceId);
+          App.selectedPiece = pieceId;
+          App.renderSelectedSlot();
+          App.renderRack();
+
+          const countSpan = document.getElementById('explore-count');
+          if (countSpan) countSpan.textContent = this.exploredSet.size;
+
+          if (this.exploredSet.size >= 3) {
+            document.getElementById('btn-next-step').disabled = false;
+            App.showToast("✨ 3개 이상의 말 속성을 확인했습니다! [다음 단계 ➔]를 누르세요.");
+          }
+        }
+        else if (this.step === 3) {
+          const isDark = (pieceId & 8) !== 0;
+          if (isDark) {
+            Sound.select();
+            App.selectedPiece = pieceId;
+            App.renderSelectedSlot();
+            App.renderRack();
+            App.showModal(
+              "🎯 정답입니다! (완벽한 전략)",
+              "상대에게 <strong>어두운 원목 말</strong>을 주었기 때문에 상대는 둘째 줄의 밝은색 라인을 완성할 수 없습니다.<br><br>이렇게 상대에게 위험하지 않은 말을 넘겨주는 것이 콰트로의 핵심 수싸움입니다!",
+              "마지막 단계로 ➔",
+              () => {
+                App.closeModal();
+                Tutorial.nextStep();
+              }
+            );
+          } else {
+            Sound.error();
+            App.showToast("⚠️ 위험합니다! 밝은색 말을 주면 상대가 바로 둘째 줄에 놓고 승리합니다. 어두운색 말을 고르세요.");
+          }
+        }
+      },
+
+      onCellClick(idx) {
+        if (this.step === 2) {
+          if (idx === 3 && App.selectedPiece !== null) {
+            Sound.place();
+            App.board[idx] = App.selectedPiece;
+            App.selectedPiece = null;
+            App.renderBoard();
+            App.renderSelectedSlot();
+
+            const win = checkQuarto(App.board);
+            if (win) {
+              Sound.quarto();
+              win.winningLine.forEach(i => {
+                document.querySelectorAll('.cell')[i].classList.add('winning-cell');
+              });
+              App.showModal(
+                "🎉 QUARTO! 콰트로 완성!",
+                `첫 번째 줄이 완성되었습니다!<br><br>공통 속성: <strong>${win.traits.join(", ")}</strong><br><br>4가지 속성 중 1가지만 같아도 승리합니다!`,
+                "다음 단계 ➔",
+                () => {
+                  App.closeModal();
+                  Tutorial.nextStep();
+                }
+              );
+            }
+          } else {
+            Sound.error();
+            App.showToast("첫 번째 줄의 4번째 칸(우측 상단 파란색 칸)에 말을 놓아보세요.");
+          }
+        }
+        else if (this.step === 4) {
+          if (idx === 15 && App.selectedPiece !== null) {
+            Sound.place();
+            App.board[idx] = App.selectedPiece;
+            App.selectedPiece = null;
+            App.renderBoard();
+            App.renderSelectedSlot();
+
+            const win = checkQuarto(App.board);
+            if (win) {
+              Sound.quarto();
+              win.winningLine.forEach(i => {
+                document.querySelectorAll('.cell')[i].classList.add('winning-cell');
+              });
+              App.showModal(
+                "🏆 튜토리얼 마스터 완료!",
+                `대각선 콰트로를 멋지게 완성하셨습니다!<br><br>공통 속성: <strong>${win.traits.join(", ")}</strong><br><br>이제 AI 또는 친구와 함께 실전 대전을 즐겨보세요!`,
+                "🤖 AI 대전 시작하기",
+                () => {
+                  App.closeModal();
+                  App.setMode('ai');
+                }
+              );
+            }
+          } else {
+            Sound.error();
+            App.showToast("대각선 라인을 완성할 우측 하단 16번째 칸을 클릭하세요.");
+          }
+        }
+      },
+
+      nextStep() {
+        if (this.step < 4) {
+          Sound.click();
+          this.loadStep(this.step + 1);
+        }
+      },
+
+      prevStep() {
+        if (this.step > 1) {
+          Sound.click();
+          this.loadStep(this.step - 1);
+        }
+      }
+    };
+
+    /* --- 메인 앱 컨트롤러 (AI & 2인 로컬) --- */
+    const App = {
+      mode: 'tutorial',
+      board: Array(16).fill(null),
+      usedPieces: new Set(),
+      selectedPiece: null,
+      phase: 'SELECT',
+      currentTurn: 1,
+      isAiThinking: false,
+
+      init() {
+        this.renderBoard();
+        this.renderRack();
+        this.setMode('tutorial');
+      },
+
+      setMode(m) {
+        Sound.click();
+        this.mode = m;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`btn-mode-${m}`).classList.add('active');
+
+        const tutNav = document.getElementById('tutorial-nav');
+        tutNav.style.display = (m === 'tutorial') ? 'flex' : 'none';
+
+        this.restartCurrentMode();
+      },
+
+      restartCurrentMode() {
+        this.board = Array(16).fill(null);
+        this.usedPieces.clear();
+        this.selectedPiece = null;
+        this.currentTurn = 1;
+        this.isAiThinking = false;
+
+        const gTitle = document.getElementById('guide-title');
+        const gContent = document.getElementById('guide-content');
+        const stepBadge = document.getElementById('step-badge');
+
+        if (this.mode === 'tutorial') {
+          Tutorial.init();
+        } else if (this.mode === 'ai') {
+          stepBadge.textContent = "VS AI 모드";
+          gTitle.textContent = "인공지능(AI)과 대결";
+          gContent.innerHTML = `
+            <p>스마트 AI와 1:1로 콰트로 대결을 진행합니다.</p>
+            <div class="highlight-box">
+              1. <strong>선공</strong>: 먼저 AI에게 넘겨줄 말을 우측 보관함에서 선택하세요.<br>
+              2. AI가 말을 보드에 배치하고 당신에게 새 말을 건넵니다.<br>
+              3. 받은 말을 보드에 배치하고, 다시 AI에게 줄 말을 고릅니다.
+            </div>
+            <div class="trait-legend-grid" style="margin-top: 6px;">
+              <div class="legend-item">🪵 밝은색 / 어두운색</div>
+              <div class="legend-item">📐 원기둥 / 사각기둥</div>
+              <div class="legend-item">📏 키 큼 / 키 작음</div>
+              <div class="legend-item">🕳️ 구멍 있음 / 꽉 참</div>
+            </div>
+            <div class="action-instruction" id="action-instruction">
+              👉 먼저 AI에게 줄 말을 우측 보관함에서 선택하세요!
+            </div>
+          `;
+          this.phase = 'SELECT';
+          this.updateTurnUI();
+          this.renderBoard();
+          this.renderRack();
+          this.renderSelectedSlot();
+        } else if (this.mode === 'pvp') {
+          stepBadge.textContent = "2인 로컬 대전";
+          gTitle.textContent = "친구와 함께 1:1 대전";
+          gContent.innerHTML = `
+            <p>한 기기에서 두 명이 번갈아가며 진행하는 대전 모드입니다.</p>
+            <div class="highlight-box">
+              • <strong>선공(플레이어 1)</strong>이 먼저 플레이어 2에게 줄 말을 고릅니다.<br>
+              • <strong>플레이어 2</strong>가 말을 보드에 놓고, 플레이어 1에게 줄 말을 고릅니다.<br>
+              • 가로/세로/대각선 4칸에 공통 속성을 가진 말을 먼저 완성하는 사람이 승리!
+            </div>
+            <div class="action-instruction" id="action-instruction">
+              👉 플레이어 1: 상대(플레이어 2)에게 줄 말을 선택하세요!
+            </div>
+          `;
+          this.phase = 'SELECT';
+          this.updateTurnUI();
+          this.renderBoard();
+          this.renderRack();
+          this.renderSelectedSlot();
+        }
+      },
+
+      updateTurnUI() {
+        const turnInd = document.getElementById('turn-indicator');
+        const statusText = document.getElementById('status-text');
+        const gAction = document.getElementById('action-instruction');
+
+        if (this.mode === 'tutorial') {
+          turnInd.textContent = "";
+          return;
+        }
+
+        const pName = (this.currentTurn === 1) ? '플레이어 1' : (this.mode === 'ai' ? '인공지능(AI)' : '플레이어 2');
+
+        if (this.phase === 'PLACE') {
+          turnInd.textContent = `${pName}의 차례 (말 배치)`;
+          statusText.textContent = `${pName}: 전달받은 말을 보드의 빈 칸에 배치하세요.`;
+          if (gAction) gAction.innerHTML = `👉 <strong>${pName}</strong>: 전달받은 말을 보드에 놓으세요!`;
+        } else {
+          turnInd.textContent = `${pName}의 차례 (말 선택)`;
+          statusText.textContent = `${pName}: 상대방에게 건넬 말을 보관함에서 선택하세요.`;
+          if (gAction) gAction.innerHTML = `👉 <strong>${pName}</strong>: 상대방에게 넘길 말을 고르세요!`;
+        }
+      },
+
+      renderBoard() {
+        const boardEl = document.getElementById('board-grid');
+        boardEl.innerHTML = '';
+        for (let i = 0; i < 16; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if (this.board[i] !== null) {
+            cell.classList.add('occupied');
+            cell.innerHTML = PieceData.generate3DSVG(this.board[i]);
+          }
+          cell.onclick = () => this.handleCellClick(i);
+          boardEl.appendChild(cell);
+        }
+      },
+
+      renderRack() {
+        const rackEl = document.getElementById('rack-grid');
+        const countEl = document.getElementById('rack-count');
+        rackEl.innerHTML = '';
+
+        let remaining = 0;
+        for (let id = 0; id < 16; id++) {
+          const isUsed = this.usedPieces.has(id);
+          if (!isUsed) remaining++;
+
+          const card = document.createElement('div');
+          card.className = 'piece-card';
+          if (isUsed) card.classList.add('used');
+          if (this.selectedPiece === id) card.classList.add('active-selected');
+
+          card.innerHTML = PieceData.generate3DSVG(id);
+          card.onclick = () => this.handlePieceClick(id);
+          rackEl.appendChild(card);
+        }
+        countEl.textContent = `남은 말: ${remaining}개`;
+      },
+
+      renderSelectedSlot() {
+        const slot = document.getElementById('selected-slot');
+        const status = document.getElementById('selected-status');
+        const traits = document.getElementById('selected-traits');
+
+        if (this.selectedPiece !== null) {
+          slot.classList.add('has-piece');
+          slot.innerHTML = PieceData.generate3DSVG(this.selectedPiece);
+          status.textContent = "선택된 말 분석";
+          traits.innerHTML = PieceData.getKoreanTraits(this.selectedPiece)
+            .map(t => `<span class="trait-badge">${t}</span>`).join('');
+        } else {
+          slot.classList.remove('has-piece');
+          slot.innerHTML = '<span style="font-size: 0.75rem; color: var(--text-muted);">없음</span>';
+          status.textContent = "말 선택 대기";
+          traits.innerHTML = '<span class="trait-badge">속성 분석 대기</span>';
+        }
+      },
+
+      handlePieceClick(pieceId) {
+        if (this.isAiThinking) return;
+
+        if (this.mode === 'tutorial') {
+          Tutorial.onPieceClick(pieceId);
+          return;
+        }
+
+        if (this.usedPieces.has(pieceId)) return;
+
+        if (this.phase === 'SELECT') {
+          Sound.select();
+          this.selectedPiece = pieceId;
+          this.usedPieces.add(pieceId);
+          this.renderRack();
+          this.renderSelectedSlot();
+
+          this.currentTurn = (this.currentTurn === 1) ? 2 : 1;
+          this.phase = 'PLACE';
+          this.updateTurnUI();
+
+          if (this.mode === 'ai' && this.currentTurn === 2) {
+            this.runAiTurn();
+          }
+        } else {
+          Sound.error();
+          this.showToast("지금은 먼저 전달받은 말을 보드에 배치해야 합니다.");
+        }
+      },
+
+      handleCellClick(cellIdx) {
+        if (this.isAiThinking) return;
+
+        if (this.mode === 'tutorial') {
+          Tutorial.onCellClick(cellIdx);
+          return;
+        }
+
+        if (this.phase !== 'PLACE') {
+          Sound.error();
+          this.showToast("상대에게 줄 말을 우측 보관함에서 먼저 선택하세요.");
+          return;
+        }
+
+        if (this.board[cellIdx] !== null) {
+          Sound.error();
+          this.showToast("이미 말이 놓여있는 칸입니다.");
+          return;
+        }
+
+        if (this.selectedPiece === null) return;
+
+        Sound.place();
+        this.board[cellIdx] = this.selectedPiece;
+        this.selectedPiece = null;
+        this.renderBoard();
+        this.renderSelectedSlot();
+
+        const win = checkQuarto(this.board);
+        if (win) {
+          Sound.quarto();
+          win.winningLine.forEach(i => {
+            document.querySelectorAll('.cell')[i].classList.add('winning-cell');
+          });
+          const winner = (this.currentTurn === 1) ? '플레이어 1' : (this.mode === 'ai' ? 'AI' : '플레이어 2');
+          this.showModal(
+            `🎉 ${winner} 승리!`,
+            `QUARTO! 4개의 말이 공통 속성을 공유합니다!<br><br>공통 속성: <strong>${win.traits.join(", ")}</strong>`,
+            "새 게임 시작",
+            () => {
+              this.closeModal();
+              this.restartCurrentMode();
+            }
+          );
+          return;
+        }
+
+        if (this.board.every(cell => cell !== null)) {
+          this.showModal(
+            "🤝 무승부!",
+            "16개의 말이 모두 놓였지만 콰트로가 완성되지 않았습니다.",
+            "새 게임 시작",
+            () => {
+              this.closeModal();
+              this.restartCurrentMode();
+            }
+          );
+          return;
+        }
+
+        this.phase = 'SELECT';
+        this.updateTurnUI();
+      },
+
+      /* --- AI 착수 엔진 --- */
+      runAiTurn() {
+        this.isAiThinking = true;
+        document.getElementById('status-text').textContent = "🤖 AI가 최적의 수를 생각하고 있습니다...";
+
+        setTimeout(() => {
+          let targetCell = -1;
+
+          // 1. 즉시 승리 가능한 수 탐색
+          for (let i = 0; i < 16; i++) {
+            if (this.board[i] === null) {
+              this.board[i] = this.selectedPiece;
+              if (checkQuarto(this.board)) {
+                targetCell = i;
+                this.board[i] = null;
+                break;
+              }
+              this.board[i] = null;
+            }
+          }
+
+          // 2. 없으면 빈 칸 중 최적 배치
+          if (targetCell === -1) {
+            const emptyCells = [];
+            for (let i = 0; i < 16; i++) {
+              if (this.board[i] === null) emptyCells.push(i);
+            }
+            targetCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+          }
+
+          Sound.place();
+          this.board[targetCell] = this.selectedPiece;
+          this.selectedPiece = null;
+          this.renderBoard();
+          this.renderSelectedSlot();
+
+          const win = checkQuarto(this.board);
+          if (win) {
+            Sound.quarto();
+            win.winningLine.forEach(i => {
+              document.querySelectorAll('.cell')[i].classList.add('winning-cell');
+            });
+            this.isAiThinking = false;
+            this.showModal(
+              "🤖 AI 승리!",
+              `AI가 콰트로를 달성했습니다!<br><br>공통 속성: <strong>${win.traits.join(", ")}</strong>`,
+              "다시 도전하기",
+              () => {
+                this.closeModal();
+                this.restartCurrentMode();
+              }
+            );
+            return;
+          }
+
+          if (this.board.every(cell => cell !== null)) {
+            this.isAiThinking = false;
+            this.showModal(
+              "🤝 무승부!",
+              "보드가 가득 찼습니다.",
+              "새 게임",
+              () => {
+                this.closeModal();
+                this.restartCurrentMode();
+              }
+            );
+            return;
+          }
+
+          // 플레이어에게 넘겨줄 안전한 말 선택
+          setTimeout(() => {
+            const availablePieces = [];
+            for (let id = 0; id < 16; id++) {
+              if (!this.usedPieces.has(id)) availablePieces.push(id);
+            }
+
+            const safePieces = availablePieces.filter(pId => {
+              for (let c = 0; c < 16; c++) {
+                if (this.board[c] === null) {
+                  this.board[c] = pId;
+                  const isWinning = checkQuarto(this.board);
+                  this.board[c] = null;
+                  if (isWinning) return false;
+                }
+              }
+              return true;
+            });
+
+            const chosenPiece = (safePieces.length > 0)
+              ? safePieces[Math.floor(Math.random() * safePieces.length)]
+              : availablePieces[Math.floor(Math.random() * availablePieces.length)];
+
+            Sound.select();
+            this.selectedPiece = chosenPiece;
+            this.usedPieces.add(chosenPiece);
+            this.renderRack();
+            this.renderSelectedSlot();
+
+            this.currentTurn = 1;
+            this.phase = 'PLACE';
+            this.isAiThinking = false;
+            this.updateTurnUI();
+            this.showToast("AI가 말을 건넸습니다. 보드에 배치하세요!");
+          }, 600);
+
+        }, 700);
+      },
+
+      /* --- 모달 및 토스트 --- */
+      showModal(title, desc, btnText, onConfirm) {
+        document.getElementById('modal-title').innerHTML = title;
+        document.getElementById('modal-desc').innerHTML = desc;
+        const actions = document.getElementById('modal-actions');
+        actions.innerHTML = `<button class="btn btn-primary" id="modal-confirm-btn">${btnText}</button>`;
+        document.getElementById('modal-confirm-btn').onclick = onConfirm;
+        document.getElementById('modal-overlay').classList.add('show');
+      },
+
+      closeModal() {
+        document.getElementById('modal-overlay').classList.remove('show');
+      },
+
+      showToast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toast-msg').innerHTML = msg;
+        t.classList.add('show');
+        clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      App.init();
+    });
+  </script>
+</body>
+</html>
